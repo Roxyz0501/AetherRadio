@@ -4,17 +4,21 @@ Updated: 2026-10-03 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
-- Development version: 0.1.0.0.
+- Public preview version: 0.1.0.0.
 - Dedicated repository: https://github.com/Roxyz0501/AetherRadio
-- Repository visibility: private (development).
-- Public release: none. Native in-game acceptance tests are outstanding.
-- Private draft Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/untagged-004a673fe4560b3c6d9a
-- Draft tag name: `v0.1.0.0`; ZIP and SHA-256 checksum attached.
+- Repository visibility: public.
+- Public Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v0.1.0.0
+- Release tag: `v0.1.0.0`; published as a prerelease, not a draft.
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.0.0/AetherRadio-0.1.0.0.zip
+- Native in-game acceptance tests remain outstanding, as documented in the release.
 - ZIP SHA-256: `1EF348B72CF25C7C8F76AE67B3A46B6D962B9EED5D2606DF9F9298D41A3D0429`.
-- Public RepoUrl/IconUrl verification: pending; do not claim public availability.
+- Verified unauthenticated HTTP 200 for RepoUrl, IconUrl (image content type) and ZIP.
+- Downloaded public ZIP matches the SHA-256 above; packaged author, URLs and license checked.
 - Shared repository: the existing Roxyz0501/DalamudPluginRepo.
-- Shared repository entry: prepared in `release/repository-entry.template.json`,
-  not added to the shared index.
+- Shared repository entry: published in registration commit
+  `883a3b6cfde35f77ae4d3742337ebd0e87c40107`.
+- Registration verified through its public commit-pinned raw index. GitHub's main
+  raw URL initially served the previous index with a 300-second cache lifetime.
 - Release ZIP: `artifacts/AetherRadio-0.1.0.0.zip`.
 - No plugin dependencies; runtime dependencies documented in `release/dependencies.json`.
 

@@ -1,6 +1,6 @@
 # Validation — 2026-10-03
 
-Version: 0.1.0.0 (development build). Author: Roxyz0501.
+Version: 0.1.0.0 (public preview). Author: Roxyz0501.
 
 ## Completed
 
@@ -17,6 +17,9 @@ Version: 0.1.0.0 (development build). Author: Roxyz0501.
   A song can appear under multiple expansions/locations.
 - Release package checked for author, RepoUrl and IconUrl retention, icon and
   upstream MIT license. Host SDK assemblies are not bundled.
+- Publication recheck: clean Release build and all 18 checks passed. Public
+  repository, image and download URLs returned HTTP 200 without authentication.
+  The downloaded ZIP's SHA-256 and packaged metadata match the released artifact.
 - Source inspected for packet/network/event-send code: none implemented.
 - Source scan for common credential patterns and personal workstation paths:
   no matches in distribution source (build outputs excluded).
