@@ -40,6 +40,34 @@ Check(q.Next(true) != 10 && q.Next(true) != 10 && q.Next(true) == null, "Shuffle
 q.Start([5, 6], 8);
 Check(q.Count == 3 && q.Current == 8, "Selected track is retained when filter changes");
 
+var mixer = new TestMusicVolume();
+var gain = new BgmVolumeSession(mixer);
+gain.Restore();
+Check(mixer.Writes == 0, "Stopped volume session leaves mixer unchanged");
+gain.Apply(50);
+Check(Math.Abs(mixer.Values[0] - 0.4f) < 0.00001f && Math.Abs(mixer.Values[1] - 0.3f) < 0.00001f, "Both BGM channels are attenuated relative to their original levels");
+var writes = mixer.Writes;
+for (var i = 0; i < 100; i++) gain.Apply(50);
+Check(mixer.Writes == writes && Math.Abs(mixer.Values[0] - 0.4f) < 0.00001f, "Unchanged volume neither compounds nor writes each frame");
+gain.Apply(0); gain.Apply(75);
+Check(Math.Abs(mixer.Values[0] - 0.6f) < 0.00001f, "Muted player can return to the requested level");
+gain.Restore();
+Check(Math.Abs(mixer.Values[0] - 0.8f) < 0.00001f && Math.Abs(mixer.Values[1] - 0.6f) < 0.00001f, "Stop restores original BGM levels");
+gain.Apply(50); mixer.Values[0] = 0.2f; gain.Apply(50); gain.Restore();
+Check(Math.Abs(mixer.Values[0] - 0.2f) < 0.00001f, "A game-side BGM volume change becomes the new restoration baseline");
+gain.Apply(50); mixer.Values[0] = 0.7f; gain.Restore();
+Check(Math.Abs(mixer.Values[0] - 0.7f) < 0.00001f, "Stop preserves a newer external volume change");
+gain.Apply(50); writes = mixer.Writes; mixer.Owner = 2; gain.Restore();
+Check(mixer.Writes == writes, "A replaced sound manager is not overwritten with stale levels");
+mixer.Values = [0.8f, 0.6f]; gain.Apply(-10);
+Check(mixer.Values.All(v => v == 0), "Negative plugin volume clamps to silence");
+gain.Apply(150);
+Check(Math.Abs(mixer.Values[0] - 0.8f) < 0.00001f, "Plugin volume cannot amplify above the captured game level");
+gain.Restore(); mixer.Values = [float.NaN, float.PositiveInfinity]; writes = mixer.Writes; gain.Apply(50); gain.Restore();
+Check(mixer.Writes == writes, "Invalid native mixer levels are never written back");
+mixer.Owner = 0; gain.Apply(50);
+Check(mixer.Writes == writes, "Missing sound manager is safe");
+
 if (args.Length > 0)
 {
     using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Language.Japanese, CacheFileResources = false });
@@ -67,4 +95,17 @@ sealed class OfflineData(GameData game) : ITrackData
 {
     public ExcelSheet<T> GetExcelSheet<T>(Language? language = null) where T : struct, IExcelRow<T> => game.GetExcelSheet<T>(language) ?? throw new InvalidOperationException($"Missing sheet: {typeof(T).Name}");
     public bool FileExists(string path) => game.FileExists(path);
+}
+
+sealed class TestMusicVolume : IMusicVolume
+{
+    public nint Owner { get; set; } = 1;
+    public float[] Values = [0.8f, 0.6f];
+    public int Writes;
+    public float Read(nint owner, MusicChannel channel) => owner == Owner ? Values[(int)channel] : float.NaN;
+    public void Write(nint owner, MusicChannel channel, float value)
+    {
+        if (owner != Owner) throw new InvalidOperationException("Stale mixer");
+        Values[(int)channel] = value; Writes++;
+    }
 }

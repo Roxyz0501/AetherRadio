@@ -28,6 +28,7 @@ public sealed class Player(Configuration config, Catalog catalog, BgmPlayback? e
             if (engine == null) throw new InvalidOperationException("BGM APIが利用できません。");
             if (!catalog.Tracks.TryGetValue(id, out var track)) throw new InvalidOperationException("この曲は現在のゲームデータに存在しません。");
             engine.Locked = config.LockBgm;
+            engine.VolumePercent = config.VolumePercent;
             engine.Play(id);
             Current = track;
             clock.Restart();
@@ -62,6 +63,7 @@ public sealed class Player(Configuration config, Catalog catalog, BgmPlayback? e
         if (!IsPlaying) { clock.Stop(); return; }
         if (!client.IsLoggedIn) { Stop(); return; }
         engine!.Locked = config.LockBgm;
+        engine.VolumePercent = config.VolumePercent;
         engine.ValidateOwner();
         if (IsPlaying && config.AutoAdvance && config.Repeat != RepeatMode.One && Elapsed >= AdvanceSeconds) Next(true);
     }

@@ -25,7 +25,8 @@
   supplied by the user's Dalamud installation and not bundled in the release.
 - FFXIVClientStructs, aers and contributors:
   https://github.com/aers/FFXIVClientStructs (MIT).
-  BGMSystem structure, generated delegates and SetBGM/ResetBGM functions.
+  BGMSystem and SoundManager structures, generated delegates, SetBGM/ResetBGM
+  and BGM-only SoundBus volume functions.
   No native signature patterns or library source files are copied into this plugin.
 - Lumina / Lumina.Excel, NotAdam and contributors:
   https://github.com/NotAdam/Lumina and https://github.com/NotAdam/Lumina.Excel (MIT).

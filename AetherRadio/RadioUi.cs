@@ -3,12 +3,10 @@ using System.Numerics;
 using System.Text;
 using AetherRadio.Core;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.Config;
-using Dalamud.Plugin.Services;
 
 namespace AetherRadio;
 
-public sealed class RadioUi(Configuration config, Catalog catalog, Player player, IGameConfig gameConfig, Action save)
+public sealed class RadioUi(Configuration config, Catalog catalog, Player player, Action save)
 {
     private static readonly Vector4 Accent = new(0.60f, 0.81f, 1f, 1);
     private static readonly Vector4 Muted = new(0.64f, 0.69f, 0.71f, 1);
@@ -378,12 +376,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.SameLine(); if (TransportButton("next", "次の曲")) player.Next();
         ImGui.EndDisabled();
         ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 157);
-        if (gameConfig.TryGet(SystemConfigOption.SoundBgm, out uint volume))
-        {
-            var v = (int)volume; ImGui.SetNextItemWidth(135);
-            if (ImGui.SliderInt("##mini-volume", ref v, 0, 100, "%d%%")) gameConfig.Set(SystemConfigOption.SoundBgm, (uint)v);
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("BGM音量");
-        }
+        DrawVolume("##mini-volume", 135);
         ImGui.TextColored(Muted, player.Error != null ? "「開く」で再生状況を確認" : !player.IsPlaying ? "停止中" : config.AutoAdvance && config.Repeat != RepeatMode.One ? $"約{Math.Max(0, player.AdvanceSeconds - (int)player.Elapsed)}秒で次の曲" : config.LockBgm ? "BGM固定中" : "再生中");
     }
     private static bool TransportButton(string icon, string tooltip, bool accent = false)
@@ -430,12 +423,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (TransportButton("shuffle", "ランダム再生", config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
         ImGui.EndDisabled();
         ImGui.SameLine(); ImGui.SetCursorPosX(250);
-        if (gameConfig.TryGet(SystemConfigOption.SoundBgm, out uint volume))
-        {
-            var v = (int)volume; ImGui.SetNextItemWidth(mini ? 170 : 220);
-            if (ImGui.SliderInt("BGM音量", ref v, 0, 100, "%d%%")) gameConfig.Set(SystemConfigOption.SoundBgm, (uint)v);
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip("ゲーム設定のBGM音量を変更します。");
-        }
+        DrawVolume("プレイヤー音量", mini ? 170 : 220);
         if (mini)
         {
             if (player.Error != null) { ImGui.TextColored(new Vector4(1, 0.66f, 0.45f, 1), "再生状況を確認するには「開く」"); }
@@ -446,6 +434,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private void DrawSettings()
     {
         ImGui.Spacing(); ImGui.TextColored(Accent, "再生");
+        ImGui.TextWrapped("音量は再生中のBGMだけに反映します。ゲームの音量設定は変更しません。100%はゲーム側で設定したBGM音量です。");
         var locked = config.LockBgm;
         if (ImGui.Checkbox("再生中はコンテンツ・戦闘・フィールドのBGM変更を無視", ref locked)) { config.LockBgm = locked; Changed(); }
         ImGui.TextWrapped("オフの場合、ゲームから次のBGM変更要求が来た時点で通常のBGMへ戻ります。停止・ログアウト・プラグイン終了時にも固定を解除します。");
@@ -477,6 +466,15 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
     private void Changed() { revision++; save(); }
+
+    private void DrawVolume(string label, float width)
+    {
+        var percent = config.VolumePercent;
+        ImGui.SetNextItemWidth(width);
+        if (ImGui.SliderInt(label, ref percent, 0, 100, "%d%%")) config.VolumePercent = percent;
+        if (ImGui.IsItemDeactivatedAfterEdit()) save();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("プレイヤー音量。100%はゲーム設定のBGM音量。SE・ボイス・環境音の音量は変更しません。");
+    }
 
     private static Vector2 ClampMiniPosition(Vector2 position, Vector2 viewport, Vector2 size) =>
         Vector2.Clamp(position, Vector2.Zero, Vector2.Max(Vector2.Zero, viewport - size));

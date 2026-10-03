@@ -1,10 +1,12 @@
 using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using AetherRadio.Core;
 
 namespace AetherRadio;
 
-// All hooks terminate in Client::Game::BGMSystem. No networking, actions,
+// Hooks terminate in BGMSystem; transient volume uses SoundManager's BGM buses.
+// No networking, actions,
 // chat commands, event packets or server-bound game functions are used.
 public sealed unsafe class BgmPlayback : IDisposable
 {
@@ -14,6 +16,8 @@ public sealed unsafe class BgmPlayback : IDisposable
     private readonly object gate = new();
     private nint owner;
     private int ownCallDepth;
+    private readonly BgmVolumeSession volume = new(new NativeMusicVolume());
+    public int VolumePercent { get; set; } = 100;
     public ushort? Current { get; private set; }
     public bool Locked { get; set; } = true;
     private readonly record struct Request(ushort Id, uint Scene, byte A3 = 0, bool Fade = false,
@@ -51,6 +55,7 @@ public sealed unsafe class BgmPlayback : IDisposable
                 resetHook.Enable();
             }
             Current = id;
+            volume.Apply(VolumePercent);
             // Scene 0 has highest priority. Other scenes continue tracking normal
             // game state, so stopping immediately reveals the current territory/duty.
             ApplySelection(id);
@@ -101,6 +106,7 @@ public sealed unsafe class BgmPlayback : IDisposable
                 pending[0] = new Request(system->Scenes[0].BgmId, 0);
                 ApplySelection(id);
             }
+            if (Current != null) volume.Apply(VolumePercent);
         }
     }
 
@@ -119,16 +125,20 @@ public sealed unsafe class BgmPlayback : IDisposable
         {
             var wasPlaying = Current != null;
             Current = null;
-            setHook.Disable();
-            resetHook.Disable();
-            var system = BGMSystem.Instance();
-            if (restore && wasPlaying && system != null && owner == (nint)system)
+            try { volume.Restore(); }
+            finally
             {
-                foreach (var r in pending.Values.OrderBy(x => x.Scene))
+                setHook.Disable();
+                resetHook.Disable();
+                var system = BGMSystem.Instance();
+                if (restore && wasPlaying && system != null && owner == (nint)system)
                 {
-                    if (r.Scene >= system->NumScenes) continue;
-                    if (r.Reset) resetHook.Original(system, r.Scene);
-                    else setHook.Original(r.Id, r.Scene, r.A3, r.Fade, r.Out, r.In, r.Start, r.A8, r.A9, r.Volume);
+                    foreach (var r in pending.Values.OrderBy(x => x.Scene))
+                    {
+                        if (r.Scene >= system->NumScenes) continue;
+                        if (r.Reset) resetHook.Original(system, r.Scene);
+                        else setHook.Original(r.Id, r.Scene, r.A3, r.Fade, r.Out, r.In, r.Start, r.A8, r.A9, r.Volume);
+                    }
                 }
             }
             pending.Clear();

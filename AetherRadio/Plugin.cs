@@ -17,7 +17,7 @@ public sealed class Plugin : IDalamudPlugin
     private bool catalogReported;
 
     public Plugin(IDalamudPluginInterface pi, ICommandManager commands, IDataManager data,
-        IClientState client, IFramework framework, IGameInteropProvider interop, IGameConfig gameConfig, IPluginLog log)
+        IClientState client, IFramework framework, IGameInteropProvider interop, IPluginLog log)
     {
         this.pi = pi; this.commands = commands; this.framework = framework; this.log = log;
         var config = pi.GetPluginConfig() as Configuration ?? new Configuration();
@@ -26,13 +26,14 @@ public sealed class Plugin : IDalamudPlugin
         foreach (var list in config.Playlists) { list.Tracks ??= []; list.Name ??= "マイリスト"; }
         config.TrackSeconds = Math.Clamp(config.TrackSeconds, 15, 1800);
         config.Opacity = Math.Clamp(config.Opacity, 0.5f, 1);
+        config.VolumePercent = Math.Clamp(config.VolumePercent, 0, 100);
         config.Corner = Math.Clamp(config.Corner, 0, 4);
         var catalog = new Catalog(new DalamudTrackData(data), (e, label) => log.Warning(e, "Catalogue enrichment: {Label}", label));
         string? engineError = null;
         try { engine = new BgmPlayback(interop); }
         catch (Exception e) { engineError = e.Message; log.Error(e, "BGM engine unavailable"); }
         player = new Player(config, catalog, engine, client, log) { Error = engineError };
-        ui = new RadioUi(config, catalog, player, gameConfig, () => pi.SavePluginConfig(config));
+        ui = new RadioUi(config, catalog, player, () => pi.SavePluginConfig(config));
         catalogTask = Task.Run(catalog.Load);
         commands.AddHandler("/aetherradio", new CommandInfo(OnCommand) { HelpMessage = "BGMプレイヤーを開く。/aetherradio stop でゲームBGMへ戻す。" });
         pi.UiBuilder.Draw += ui.Draw;

@@ -1,6 +1,15 @@
 # Validation — 2026-10-04
 
-Version: 0.1.1.0 (public preview). Author: Roxyz0501.
+Version: 0.1.2.0 (public preview). Author: Roxyz0501.
+
+## 0.1.2.0 volume verification
+
+- Removed the IGameConfig dependency and all system-config writes from the plugin.
+- Native adapter permits only SoundBus.Music and SoundBus.TimeStretchBGM, not master, SE, voice, environment or mute controls.
+- Twelve new mixer-session tests cover attenuation, silence/unmute, no cumulative attenuation, no repeated writes, restoration, external volume changes, manager replacement, clamping and invalid values.
+- Main and mini volume sliders update one persisted plugin setting and save once per completed interaction in the ImGui harness.
+- Total: 33 managed/offline checks. Live listening, bus response and restoration in the running game remain unverified.
+- Seek investigation: installed and upstream BGMSystem/ISoundData APIs provide no established seek operation. The advance timer is not presented as a working seek control.
 
 ## 0.1.1.0 UI verification
 
