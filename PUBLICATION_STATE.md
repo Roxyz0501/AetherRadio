@@ -4,22 +4,23 @@ Updated: 2026-10-04 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
-- Public preview version: 0.1.3.0.
+- Public preview version: 0.1.4.0.
 - Dedicated repository: https://github.com/Roxyz0501/AetherRadio
 - Repository visibility: public.
-- Public Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v0.1.3.0
-- Release tag: `v0.1.3.0`; published as a prerelease, not a draft.
-- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.3.0/AetherRadio-0.1.3.0.zip
+- Public Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v0.1.4.0
+- Release tag: `v0.1.4.0`; published as a prerelease, not a draft.
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.4.0/AetherRadio-0.1.4.0.zip
 - Native in-game acceptance tests remain outstanding, as documented in the release.
-- ZIP SHA-256: `072E89308944CD298E80D9CA932414E1B1042DDF681C67592A826052CD9F2A59`.
+- ZIP SHA-256: `500B84C5838CFB0A1F6B51C976114AE4F7F8E2D0A8CBB18672E4DB8F71FE6F42`.
 - Verified unauthenticated HTTP 200 for RepoUrl, IconUrl (image content type) and ZIP.
 - Downloaded public ZIP matches the SHA-256 above; packaged author, URLs and license checked.
 - Shared repository: the existing Roxyz0501/DalamudPluginRepo.
 - Shared repository entry: published in registration commit
-  `92e0724d34951dc6ed9a4286af5ca2f4fdc56ff9`.
+  `c9c631bb8b5cc9d30e9ad1d0d796daf354d57640`.
 - Registration verified through both public main and commit-pinned raw indexes.
-- Release ZIP: `artifacts/AetherRadio-0.1.3.0.zip`.
+- Release ZIP: `artifacts/AetherRadio-0.1.4.0.zip`.
 - No plugin dependencies; runtime dependencies documented in `release/dependencies.json`.
+- Release source commit: `efd4616097f466be04bbbedd7cf89958487d8130`.
 
 On 2026-10-03 the user explicitly requested publication after being informed that
 in-game playback/lock/restore testing was outstanding. Publish as an initial preview
@@ -42,3 +43,11 @@ now reveal the window on screen and focus it; legacy command remains available.
 Release build, 24 managed checks and command/UI harness passed. Public main and
 commit-pinned indexes, repository/icon/download and packaged identity verified.
 Actual execution of the new command in the running game remains unverified.
+
+0.1.4.0: logout resets selection, queue/history, elapsed time and playback errors,
+releases/disposes native hooks and restores transient BGM volume. Next manual
+play creates a fresh engine; persistent playlists/settings are unchanged.
+44 managed checks, 53 including offline catalogue checks, and the command/UI
+harness passed. Clean Release build, public repository/icon/ZIP, packaged
+identity/license, SHA-256 and both shared index URLs verified. Native in-game
+logout/relogin and audio restoration remain unverified.
