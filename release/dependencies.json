@@ -1,0 +1,6 @@
+{
+  "PluginDependencies": [],
+  "Runtime": { "DalamudApiLevel": 15, "TargetFramework": "net10.0-windows", "Architecture": "x64" },
+  "BuildSdk": "Dalamud.NET.Sdk/15.0.0",
+  "HostProvidedAssemblies": ["Dalamud", "Dalamud.Bindings.ImGui", "FFXIVClientStructs", "Lumina", "Lumina.Excel", "InteropGenerator.Runtime"]
+}

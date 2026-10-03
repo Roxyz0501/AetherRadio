@@ -1,0 +1,12 @@
+{
+  "Author": "Roxyz0501",
+  "Name": "Aether Radio",
+  "InternalName": "AetherRadio",
+  "Punchline": "画面の片隅に、あなた専用のBGMプレイヤー。",
+  "Description": "ゲーム内BGMを拡張・コンテンツ・フィールドから選択。ミニプレイヤー、検索、お気に入り、マイリスト、シャッフル、リピートに対応。ローカル再生中はゲーム側のBGM切り替えを固定できます。 /aetherradio",
+  "RepoUrl": "https://github.com/Roxyz0501/AetherRadio",
+  "IconUrl": "https://raw.githubusercontent.com/Roxyz0501/AetherRadio/main/images/icon.png",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 15,
+  "Tags": ["music", "bgm", "player", "playlist", "音楽"]
+}
