@@ -8,6 +8,9 @@ Author: Roxyz0501.
 - Dedicated repository: https://github.com/Roxyz0501/AetherRadio
 - Repository visibility: private (development).
 - Public release: none. Native in-game acceptance tests are outstanding.
+- Private draft Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/untagged-004a673fe4560b3c6d9a
+- Draft tag name: `v0.1.0.0`; ZIP and SHA-256 checksum attached.
+- ZIP SHA-256: `EF8B3668531732025C031909EEB308C18D0BC559E55CF959F2C77F5D256CE877`.
 - Public RepoUrl/IconUrl verification: pending; do not claim public availability.
 - Shared repository: the existing Roxyz0501/DalamudPluginRepo.
 - Shared repository entry: prepared in `release/repository-entry.template.json`,
