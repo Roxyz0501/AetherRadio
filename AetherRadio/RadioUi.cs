@@ -11,6 +11,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private static readonly Vector4 Accent = new(0.60f, 0.81f, 1f, 1);
     private static readonly Vector4 Muted = new(0.64f, 0.69f, 0.71f, 1);
     private bool open;
+    private bool revealMain;
     private string search = "";
     private uint? expansion;
     private string? area;
@@ -26,7 +27,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private Location[]? allLocations;
     private bool miniDragged;
     public bool CatalogReady { get; set; }
-    public void Open() => open = true;
+    public void Open() { open = true; revealMain = true; }
 
     public void Draw()
     {
@@ -65,11 +66,21 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
 
     private void DrawMain()
     {
+        var viewport = ImGui.GetMainViewport();
+        var maxSize = Vector2.Max(new Vector2(320, 260), viewport.WorkSize - new Vector2(32));
         ImGui.SetNextWindowSize(new Vector2(1000, 690), ImGuiCond.FirstUseEver);
-        ImGui.SetNextWindowSizeConstraints(new Vector2(850, 540), new Vector2(1800, 1200));
-        if (ImGui.Begin("Aether Radio###AetherRadio.Main", ref open, ImGuiWindowFlags.NoCollapse))
+        ImGui.SetNextWindowSizeConstraints(Vector2.Min(new Vector2(850, 540), maxSize), maxSize);
+        if (revealMain)
         {
-            ImGui.TextColored(Accent, "AETHER RADIO");
+            var size = Vector2.Min(new Vector2(1000, 690), maxSize);
+            ImGui.SetNextWindowSize(size, ImGuiCond.Always);
+            ImGui.SetNextWindowPos(viewport.WorkPos + (viewport.WorkSize - size) / 2, ImGuiCond.Always);
+            ImGui.SetNextWindowFocus();
+            revealMain = false;
+        }
+        if (ImGui.Begin("BGMPlayer###AetherRadio.Main", ref open, ImGuiWindowFlags.NoCollapse))
+        {
+            ImGui.TextColored(Accent, "BGMPlayer");
             ImGui.SameLine(); ImGui.TextColored(Muted, "BGMプレイヤー");
             ImGui.Separator();
             if (ImGui.BeginTabBar("tabs"))
@@ -84,7 +95,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
                 ImGui.PopStyleColor(4);
                 if (support)
                 {
-                    ImGui.Spacing(); ImGui.TextColored(Accent, "Aether Radio by Roxyz0501");
+                    ImGui.Spacing(); ImGui.TextColored(Accent, "BGMPlayer by Roxyz0501");
                     ImGui.TextWrapped("Ko-fiから開発を支援できます（任意）。");
                     ImGui.Spacing(); ImGui.TextUnformatted("支援先: Roxyz0501");
                     if (ImGui.Button("Ko-fiで支援する"))
@@ -320,7 +331,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         {
             var header = ImGui.GetCursorScreenPos();
             ImGui.InvisibleButton("##move-mini", new Vector2(Math.Max(80, ImGui.GetContentRegionAvail().X - 140), 22));
-            ImGui.GetWindowDrawList().AddText(header + new Vector2(0, 3), ImGui.ColorConvertFloat4ToU32(Accent), "AETHER RADIO");
+            ImGui.GetWindowDrawList().AddText(header + new Vector2(0, 3), ImGui.ColorConvertFloat4ToU32(Accent), "BGMPlayer");
             if (ImGui.IsItemHovered()) ImGui.SetTooltip(config.PinMini ? "位置を固定しています。「解除」で移動できます。" : "ここをドラッグして移動");
             if (!config.PinMini && ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
             {
@@ -337,7 +348,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             ImGui.SameLine();
             if (ImGui.SmallButton(config.PinMini ? "解除" : "固定")) { config.PinMini = !config.PinMini; Changed(); }
             ImGui.SameLine();
-            if (ImGui.SmallButton("開く")) open = true;
+            if (ImGui.SmallButton("開く")) Open();
             ImGui.SameLine();
             if (ImGui.SmallButton("×")) { config.ShowMini = false; Changed(); }
             DrawMiniPlayback();
@@ -359,7 +370,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (ImGui.BeginChild("mini-title", new Vector2(ImGui.GetContentRegionAvail().X, 24), false, ImGuiWindowFlags.NoScrollbar)) ImGui.TextUnformatted(title);
         ImGui.EndChild();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(title);
-        ImGui.TextColored(Muted, player.Current?.Locations.FirstOrDefault()?.Expansion ?? "Aether Radio");
+        ImGui.TextColored(Muted, player.Current?.Locations.FirstOrDefault()?.Expansion ?? "BGMPlayer");
         ImGui.EndGroup();
         ImGui.Spacing();
         var timeline = ImGui.GetCursorScreenPos();
@@ -452,7 +463,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         var corner = config.Corner;
         if (ImGui.Combo("配置", ref corner, "自由に移動\0左上\0右上\0左下\0右下\0")) { config.Corner = corner; Changed(); }
         var pin = config.PinMini; if (ImGui.Checkbox("位置を固定", ref pin)) { config.PinMini = pin; Changed(); }
-        ImGui.TextWrapped("ミニプレイヤー上部の「AETHER RADIO」をドラッグすると移動できます。");
+        ImGui.TextWrapped("ミニプレイヤー上部の「BGMPlayer」をドラッグすると移動できます。");
         var opacity = config.Opacity; if (ImGui.SliderFloat("背景の不透明度", ref opacity, 0.5f, 1, "%.2f")) { config.Opacity = opacity; Changed(); }
         ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Accent, "ライブラリ情報");
         if (CatalogReady)
@@ -461,7 +472,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             ImGui.TextWrapped("インストール済みゲームデータのBGM表を読み取ります。曲名が不明な曲は「曲名未登録」と表示します。場所が分かる場合は場所名を添えています。分類できない曲は「その他」にあります。");
             foreach (var warning in catalog.Warnings) ImGui.TextWrapped(warning);
         }
-        ImGui.TextWrapped("/aetherradio で開く · /aetherradio stop でゲームBGMへ戻す");
+        ImGui.TextWrapped("/bgmplayer で開く · /bgmplayer stop でゲームBGMへ戻す");
         if (ImGui.Button("ゲームBGMへ戻す")) player.Stop();
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }

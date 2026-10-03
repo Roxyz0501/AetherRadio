@@ -1,19 +1,18 @@
-Aether Radio 0.1.2.0
+BGMPlayer 0.1.3.0
 
-- 音量スライダーがゲーム設定を直接書き換える処理を削除。
-- プラグイン側に音量を保存し、再生中だけBGMの音量系統に反映。
-- SE・ボイス・環境音・マスター音量は変更しません。
-- 停止・ログアウト・終了時にBGM音量を復元。途中でゲーム側の音量を変えた場合は、その変更を保持。
-- メイン画面とミニプレイヤーの音量を同期。
+- プラグイン名をAether RadioからBGMPlayerに変更。
+- `/bgmplayer` で開く、`/bgmplayer stop` で通常のゲームBGMへ戻します。
+- 開くときにウィンドウを画面内へ再配置し、手前に表示するよう修正。
+- 旧コマンド `/aetherradio` も互換用に維持。
+- 既存のマイリスト・お気に入り・音量・ミニプレイヤー位置を引き継ぎます。
 
-100%はゲーム側で設定したBGM音量です。ゲーム側でBGMがミュートされている場合は音が出ません。
-旧版で変更済みのゲーム音量は、必要に応じてゲーム設定から調整してください。
-シークには未対応です。現在のバーは曲送りまでの目安表示です。
+`/xlplugins` で既存のAether Radioを更新してください。更新後の表示名はBGMPlayerです。
+シークは今回追加していません。
 
-Releaseビルド、33項目の管理コード・オフラインデータテスト、単体UI操作を確認済み。
-実ゲーム上の聴感・全コンテンツでの復帰確認は未完了です。
+再生中のBGMだけを調整する音量仕様は継続しています。ゲーム設定を書き換える処理やパケット送信はありません。
+Releaseビルド、管理コード・オフラインデータテスト、コマンドと単体UIの操作を検証しています。
+実ゲーム内での今回のコマンド実行は未検証です。
 
-`/xlplugins` から更新できます。`/aetherradio` で開きます。
 https://raw.githubusercontent.com/Roxyz0501/DalamudPluginRepo/main/repo.json
 
 Includes MIT-licensed song metadata from OrchestrionPlugin by Meli, perchbird and contributors.

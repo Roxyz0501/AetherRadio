@@ -1,8 +1,8 @@
-# Aether Radio
+# BGMPlayer
 
 FFXIVのBGMを選んで再生するDalamudプラグインです。作者: **Roxyz0501**。
 
-![Aether Radio icon](images/icon.png)
+![BGMPlayer icon](images/icon.png)
 
 ![Library and mini player preview](images/ui-preview.png)
 
@@ -21,6 +21,9 @@ FFXIVのBGMを選んで再生するDalamudプラグインです。作者: **Roxy
 - 再生中のBGM固定、停止時のゲームBGM復帰。設定・リストはDalamudに保存。
 - 任意の「支援」タブ。支援による機能制限はありません。
 
+旧称はAether Radioです。既存のインストールを更新するとBGMPlayerになり、マイリストや設定は引き継がれます。
+旧コマンド `/aetherradio` も互換用に使用できます。
+
 ## インストール
 
 1. `/xlsettings` の「試験的機能」からカスタムプラグインリポジトリを追加します。
@@ -28,8 +31,8 @@ FFXIVのBGMを選んで再生するDalamudプラグインです。作者: **Roxy
 
    `https://raw.githubusercontent.com/Roxyz0501/DalamudPluginRepo/main/repo.json`
 
-3. `/xlplugins` で **Aether Radio** を検索してインストールします。
-4. `/aetherradio` で曲を選びます。`/aetherradio stop` は固定を解除します。
+3. `/xlplugins` で **BGMPlayer** を検索してインストールします。
+4. `/bgmplayer` で曲を選びます。`/bgmplayer stop` は固定を解除します。
 
 現在の公開版はプレビューです。ゲーム内の音声再生・固定・復帰の実機確認は未完了です。
 
@@ -37,10 +40,10 @@ FFXIVのBGMを選んで再生するDalamudプラグインです。作者: **Roxy
 
 1. Release ZIPを任意の専用フォルダーに展開します。
 2. Dalamudの開発プラグイン設定に、展開した `AetherRadio.dll` のパスを追加します。
-3. 開発プラグイン一覧からAether Radioを読み込みます。
-4. `/aetherradio` で曲を選びます。`/aetherradio stop` は固定を解除します。
+3. 開発プラグイン一覧からBGMPlayerを読み込みます。
+4. `/bgmplayer` で曲を選びます。`/bgmplayer stop` は固定を解除します。
 
-ミニプレイヤー上部の「AETHER RADIO」をドラッグして移動できます。
+ミニプレイヤー上部の「BGMPlayer」をドラッグして移動できます。
 「固定」で位置を固定し、「解除」で再び移動できます。位置は次回も保持します。
 
 曲の「＋」でマイリストへ追加できます。再生ボタンは選択した一覧を再生キューとして
@@ -88,7 +91,7 @@ dotnet run --project Tests -c Release -p:DalamudLibPath='D:/path/to/Dalamud/dev/
 ```
 
 実ゲームのカタログ検証には、テストコマンド末尾に `-- 'D:/path/to/game/sqpack'` を追加します。
-配布ZIPは `artifacts/AetherRadio-0.1.2.0.zip` に生成されます。
+配布ZIPは `artifacts/AetherRadio-0.1.3.0.zip` に生成されます。
 
 ## 配布
 

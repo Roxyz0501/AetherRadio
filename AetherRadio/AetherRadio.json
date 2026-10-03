@@ -1,9 +1,9 @@
 {
   "Author": "Roxyz0501",
-  "Name": "Aether Radio",
+  "Name": "BGMPlayer",
   "InternalName": "AetherRadio",
   "Punchline": "ゲーム内のBGMを選んで再生できます。",
-  "Description": "拡張・ジャンルのタブとコンテンツ名で曲を探せるBGMプレイヤーです。お気に入り、マイリスト、ランダム再生に対応しています。ミニプレイヤーは上部をドラッグして移動できます。\n\n/aetherradio で開く\n/aetherradio stop で通常のBGMに戻す",
+  "Description": "拡張・ジャンルのタブとコンテンツ名で曲を探せるBGMプレイヤーです。お気に入り、マイリスト、ランダム再生に対応しています。ミニプレイヤーは上部をドラッグして移動できます。\n\n/bgmplayer で開く\n/bgmplayer stop で通常のBGMに戻す",
   "RepoUrl": "https://github.com/Roxyz0501/AetherRadio",
   "IconUrl": "https://raw.githubusercontent.com/Roxyz0501/AetherRadio/main/images/icon.png",
   "ApplicableVersion": "any",

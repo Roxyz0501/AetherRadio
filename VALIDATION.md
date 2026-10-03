@@ -1,6 +1,18 @@
 # Validation — 2026-10-04
 
-Version: 0.1.2.0 (public preview). Author: Roxyz0501.
+Version: 0.1.3.0 (public preview). Author: Roxyz0501.
+
+## 0.1.3.0 naming and command verification
+
+- Display name and UI labels changed to BGMPlayer; primary command is /bgmplayer.
+- InternalName, assembly/config identity and ImGui IDs remain AetherRadio so existing installations and settings update in place.
+- Installed 0.1.2.0 logs showed successful loading without a matching draw exception. Saved window placement alone does not establish the cause of the user's failed-open report.
+- Opening explicitly centers the main window within the active viewport, constrains its size and requests focus.
+- Isolated ImGui test invokes the registered /bgmplayer handler with the window closed and positioned outside the viewport; verifies visible placement and focus.
+- Command tests also check stop with surrounding whitespace, legacy /aetherradio, cleanup and preservation of an unrelated legacy registration.
+- Existing UI search/filter/scroll, volume and mini movement checks passed.
+- Native in-game execution of the new command remains unverified.
+- User declined seeking; no alternate playback engine was added.
 
 ## 0.1.2.0 volume verification
 
@@ -64,7 +76,7 @@ Version: 0.1.2.0 (public preview). Author: Roxyz0501.
 
 ## In-game acceptance sequence
 
-1. Load the development DLL, open `/aetherradio`, type a search and change filters.
+1. Load the development DLL, open `/bgmplayer`, type a search and change filters.
 2. Play a field, duty, mount and short non-looping track; check volume.
 3. With lock enabled, trigger battle and content BGM changes; confirm chosen audio
    remains. Stop and confirm the latest normal BGM returns.

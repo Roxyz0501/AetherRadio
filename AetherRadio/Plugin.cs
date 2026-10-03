@@ -1,4 +1,3 @@
-using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 
@@ -7,7 +6,7 @@ namespace AetherRadio;
 public sealed class Plugin : IDalamudPlugin
 {
     private readonly IDalamudPluginInterface pi;
-    private readonly ICommandManager commands;
+    private readonly PluginCommands commands;
     private readonly IFramework framework;
     private readonly BgmPlayback? engine;
     private readonly Player player;
@@ -19,7 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin(IDalamudPluginInterface pi, ICommandManager commands, IDataManager data,
         IClientState client, IFramework framework, IGameInteropProvider interop, IPluginLog log)
     {
-        this.pi = pi; this.commands = commands; this.framework = framework; this.log = log;
+        this.pi = pi; this.framework = framework; this.log = log;
         var config = pi.GetPluginConfig() as Configuration ?? new Configuration();
         config.Favorites ??= []; config.Playlists ??= [];
         config.Playlists.RemoveAll(x => x == null);
@@ -34,17 +33,13 @@ public sealed class Plugin : IDalamudPlugin
         catch (Exception e) { engineError = e.Message; log.Error(e, "BGM engine unavailable"); }
         player = new Player(config, catalog, engine, client, log) { Error = engineError };
         ui = new RadioUi(config, catalog, player, () => pi.SavePluginConfig(config));
+        try { this.commands = new PluginCommands(commands, ui.Open, player.Stop); }
+        catch { engine?.Dispose(); throw; }
         catalogTask = Task.Run(catalog.Load);
-        commands.AddHandler("/aetherradio", new CommandInfo(OnCommand) { HelpMessage = "BGMプレイヤーを開く。/aetherradio stop でゲームBGMへ戻す。" });
         pi.UiBuilder.Draw += ui.Draw;
         pi.UiBuilder.OpenMainUi += ui.Open;
         pi.UiBuilder.OpenConfigUi += ui.Open;
         framework.Update += Update;
-    }
-    private void OnCommand(string command, string args)
-    {
-        if (args.Trim().Equals("stop", StringComparison.OrdinalIgnoreCase)) player.Stop();
-        else ui.Open();
     }
     private void Update(IFramework _)
     {
@@ -62,7 +57,7 @@ public sealed class Plugin : IDalamudPlugin
         pi.UiBuilder.Draw -= ui.Draw;
         pi.UiBuilder.OpenMainUi -= ui.Open;
         pi.UiBuilder.OpenConfigUi -= ui.Open;
-        commands.RemoveHandler("/aetherradio");
+        commands.Dispose();
         // The task reads only game data; join before releasing this plugin's services.
         try { catalogTask.GetAwaiter().GetResult(); } catch { /* Already reported above or during unload. */ }
         engine?.Dispose();

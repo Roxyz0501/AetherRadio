@@ -12,7 +12,7 @@
   spreadsheet maintainers and community contributors, including MagowDeath.
 - The BGMController and BGMPlayer source was consulted to understand scene
   priority and the existing concept of maintaining a local scene override.
-  Aether Radio's implementation calls the FFXIVClientStructs BGMSystem API and
+  BGMPlayer's implementation calls the FFXIVClientStructs BGMSystem API and
   was independently written; no upstream controller code or assets were copied.
 - This is a standalone project, not a fork or a copy of the upstream repository.
   Roxyz0501 does not claim authorship of the reused metadata.
