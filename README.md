@@ -21,7 +21,19 @@
 - 再生中のBGM固定、停止時のゲームBGM復帰。設定・リストはDalamudに保存。
 - 任意の「支援」タブ。支援による機能制限はありません。
 
-## 開発版の導入
+## インストール
+
+1. `/xlsettings` の「試験的機能」からカスタムプラグインリポジトリを追加します。
+2. 次のURLを登録して設定を保存します。
+
+   `https://raw.githubusercontent.com/Roxyz0501/DalamudPluginRepo/main/repo.json`
+
+3. `/xlplugins` で **Aether Radio** を検索してインストールします。
+4. `/aetherradio` で曲を選びます。`/aetherradio stop` は固定を解除します。
+
+初回公開版はプレビューです。ゲーム内の音声再生・固定・復帰の実機確認は未完了です。
+
+### 開発用DLLを直接読み込む場合
 
 1. Release ZIPを任意の専用フォルダーに展開します。
 2. Dalamudの開発プラグイン設定に、展開した `AetherRadio.dll` のパスを追加します。
@@ -75,12 +87,12 @@ dotnet run --project Tests -c Release -p:DalamudLibPath='D:/path/to/Dalamud/dev/
 
 専用ソース・Issue・Releaseリポジトリ: https://github.com/Roxyz0501/AetherRadio
 
-公開時は既存の共有Dalamudリポジトリを使用します。
+配布には既存の共有Dalamudリポジトリを使用します。
 https://raw.githubusercontent.com/Roxyz0501/DalamudPluginRepo/main/repo.json
 
 `release/repository-entry.template.json` は共有インデックス用メタデータのテンプレートです。
-独立したカスタムリポジトリではありません。公開前にアイコンURL・ソースURL・
-Release ZIPを検証してください。未公開のURLをインストール先として案内しないでください。
+独立したカスタムリポジトリではありません。各バージョンの公開時にアイコンURL・
+ソースURL・Release ZIPを検証します。
 
 ## 出典とライセンス
 
