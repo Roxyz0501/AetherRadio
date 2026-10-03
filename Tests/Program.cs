@@ -50,9 +50,12 @@ if (args.Length > 0)
     Check(catalogue.Tracks.Values.All(x => x.Locations.Count > 0), "Every track has a category, including Other");
     Check(catalogue.Warnings.Count == 0, "All catalogue enrichment sheets loaded");
     Check(catalogue.Tracks.Values.Any(x => x.Locations.Any(l => l.Category == "フィールド")), "Field BGM mapping is populated");
-    Check(catalogue.Tracks.Values.Any(x => x.Locations.Any(l => l.Category == "コンテンツ")), "Duty BGM mapping is populated");
-    var named = catalogue.Tracks.Values.Count(x => !x.Title.StartsWith("BGM "));
+    Check(catalogue.Tracks.Values.Any(x => x.Locations.Any(l => l.Category is "討滅" or "レイド" or "ダンジョン")), "Duty BGM mapping is populated");
+    var named = catalogue.Tracks.Values.Count(x => x.HasKnownTitle);
     Check(named > 500, "Bundled metadata resolves Japanese song titles");
+    Check(new[] { "討滅", "レイド", "ダンジョン" }.All(g => catalogue.Tracks.Values.Any(t => t.Locations.Any(l => l.Category == g))), "Duty genres resolve from content type");
+    Check(catalogue.Tracks.Values.All(t => !t.Title.Contains("BGM_EX", StringComparison.OrdinalIgnoreCase)), "Internal file names are not displayed as song titles");
+    Check(catalogue.Tracks.Values.Where(t => !t.HasKnownTitle).All(t => t.Title.Contains("曲名未登録")), "Unknown titles are identified honestly");
     var other = catalogue.Tracks.Values.Count(x => x.Locations.All(l => l.Category == "その他"));
     Console.WriteLine($"CATALOG: {catalogue.Tracks.Count} tracks, {named} named, {other} other, {catalogue.MissingFiles} missing files");
     foreach (var exp in catalogue.Tracks.Values.SelectMany(t => t.Locations.Select(l => (t.Id, l.ExpansionId, l.Expansion))).Distinct().GroupBy(x => (x.ExpansionId, x.Expansion)).OrderBy(x => x.Key.ExpansionId))

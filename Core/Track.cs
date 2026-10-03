@@ -6,7 +6,8 @@ public sealed class Track(ushort id, string path, string title)
 {
     public ushort Id { get; } = id;
     public string Path { get; } = path;
-    public string Title { get; } = title;
+    public string Title { get; set; } = title;
+    public bool HasKnownTitle { get; init; } = true;
     public List<Location> Locations { get; } = [];
     public string MetadataSearch { get; init; } = "";
     public int? DurationSeconds { get; init; }

@@ -36,8 +36,8 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
             if (bgm.RowId is 0 or > ushort.MaxValue || string.IsNullOrWhiteSpace(path)) continue;
             if (!data.FileExists(path)) { MissingFiles++; continue; }
             var extra = metadata.GetValueOrDefault((ushort)bgm.RowId);
-            var title = extra?.Title ?? names.GetValueOrDefault(path) ?? $"BGM {bgm.RowId:D4} · {System.IO.Path.GetFileNameWithoutExtension(path)}";
-            Tracks.Add((ushort)bgm.RowId, new Track((ushort)bgm.RowId, path, title) { MetadataSearch = extra?.SearchTerms ?? "", DurationSeconds = extra?.Seconds });
+            var title = extra?.Title ?? names.GetValueOrDefault(path);
+            Tracks.Add((ushort)bgm.RowId, new Track((ushort)bgm.RowId, path, title ?? "曲名未登録") { HasKnownTitle = title != null, MetadataSearch = extra?.SearchTerms ?? "", DurationSeconds = extra?.Seconds });
         }
         Enrich("フィールド分類", () => {
             foreach (var territory in data.GetExcelSheet<TerritoryType>())
@@ -48,7 +48,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
                 var isDuty = !string.IsNullOrWhiteSpace(dutyName);
                 var name = isDuty ? dutyName! : areaName;
                 if (string.IsNullOrWhiteSpace(name)) continue;
-                var loc = new Location(territory.ExVersion.RowId, Expansion(territory.ExVersion.RowId), isDuty ? "コンテンツ" : "フィールド", name);
+                var loc = new Location(territory.ExVersion.RowId, Expansion(territory.ExVersion.RowId), isDuty ? Genre(duty!.Value) : "フィールド", name);
                 Resolve(territory.BGM, loc, new HashSet<(Type?, uint)>());
             }
         });
@@ -58,7 +58,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
                 if (instance.ContentFinderCondition.ValueNullable is not { } duty) continue;
                 var name = duty.Name.ToString();
                 if (string.IsNullOrWhiteSpace(name)) continue;
-                var loc = new Location(duty.RequiredExVersion.RowId, Expansion(duty.RequiredExVersion.RowId), "コンテンツ", name);
+                var loc = new Location(duty.RequiredExVersion.RowId, Expansion(duty.RequiredExVersion.RowId), Genre(duty), name);
                 Add(instance.BGM.RowId, loc);
                 Add(instance.WinBGM.RowId, loc);
             }
@@ -74,7 +74,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
                 var english = isDuty ? englishDuties.GetRowOrDefault(duty!.Value.RowId)?.Name.ToString()
                     : englishTerritories.GetRowOrDefault(territory.RowId)?.PlaceName.ValueNullable?.Name.ToString();
                 if (string.IsNullOrWhiteSpace(name)) continue;
-                var loc = new Location(territory.ExVersion.RowId, Expansion(territory.ExVersion.RowId), isDuty ? "コンテンツ" : "フィールド", name, true);
+                var loc = new Location(territory.ExVersion.RowId, Expansion(territory.ExVersion.RowId), isDuty ? Genre(duty!.Value) : "フィールド", name, true);
                 foreach (var track in Tracks.Values)
                 {
                     var japaneseMatch = name.Length >= 4 && track.Title.Contains(name, StringComparison.OrdinalIgnoreCase);
@@ -86,6 +86,21 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
         });
         foreach (var track in Tracks.Values.Where(t => t.Locations.Count == 0))
             track.Locations.Add(new Location(uint.MaxValue, "その他", "その他", "未分類のBGM"));
+        foreach (var track in Tracks.Values.Where(t => !t.HasKnownTitle))
+        {
+            var location = track.Locations.FirstOrDefault(l => l.ExpansionId != uint.MaxValue);
+            track.Title = location == null ? $"曲名未登録（{track.Id:D4}）" : $"{location.Name}（曲名未登録・{track.Id:D4}）";
+        }
+    }
+
+    private static string Genre(ContentFinderCondition duty)
+    {
+        var name = duty.ContentType.ValueNullable?.Name.ToString();
+        if (string.IsNullOrWhiteSpace(name)) return "その他";
+        if (name.Contains("討伐") || name.Contains("討滅")) return "討滅";
+        if (name.Contains("レイド")) return "レイド";
+        if (name.Contains("ダンジョン")) return name.Contains("ディープ") ? "ディープダンジョン" : "ダンジョン";
+        return name == "PvP" ? "PvP" : "その他のコンテンツ";
     }
 
     private string Expansion(uint id) => data.GetExcelSheet<ExVersion>().GetRowOrDefault(id)?.Name.ToString() is { Length: > 0 } name ? name : $"拡張 {id}";

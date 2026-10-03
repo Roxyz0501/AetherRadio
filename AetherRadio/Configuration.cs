@@ -1,5 +1,6 @@
 using Dalamud.Configuration;
 using AetherRadio.Core;
+using System.Numerics;
 
 namespace AetherRadio;
 
@@ -10,6 +11,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool ShowMini { get; set; } = true;
     public bool PinMini { get; set; }
     public int Corner { get; set; } = 2;
+    public Vector2? MiniPosition { get; set; }
     public float Opacity { get; set; } = 0.94f;
     public bool LockBgm { get; set; } = true;
     public bool Shuffle { get; set; }

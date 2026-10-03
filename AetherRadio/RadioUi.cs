@@ -10,47 +10,59 @@ namespace AetherRadio;
 
 public sealed class RadioUi(Configuration config, Catalog catalog, Player player, IGameConfig gameConfig, Action save)
 {
-    private static readonly Vector4 Mint = new(0.45f, 0.91f, 0.78f, 1);
-    private static readonly Vector4 Muted = new(0.62f, 0.69f, 0.77f, 1);
+    private static readonly Vector4 Accent = new(0.60f, 0.81f, 1f, 1);
+    private static readonly Vector4 Muted = new(0.64f, 0.69f, 0.71f, 1);
     private bool open;
     private string search = "";
     private uint? expansion;
     private string? area;
+    private string? genre;
+    private bool resetScroll;
     private int library;
     private Guid? playlist;
     private string newList = "";
     private string rename = "";
-    private int page;
     private int revision;
     private string cacheKey = "";
     private List<Track> visible = [];
     private Location[]? allLocations;
+    private bool miniDragged;
     public bool CatalogReady { get; set; }
     public void Open() => open = true;
 
     public void Draw()
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 14);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 9);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 7);
         ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 10);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(18, 16));
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(10, 9));
-        ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.035f, 0.06f, 0.10f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.055f, 0.09f, 0.14f, 1));
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.10f, 0.24f, 0.27f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.15f, 0.38f, 0.38f, 1));
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.18f, 0.46f, 0.42f, 1));
-        ImGui.PushStyleColor(ImGuiCol.Header, new Vector4(0.10f, 0.30f, 0.30f, 1));
-        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Vector4(0.14f, 0.36f, 0.36f, 1));
-        ImGui.PushStyleColor(ImGuiCol.HeaderActive, new Vector4(0.17f, 0.42f, 0.39f, 1));
-        ImGui.PushStyleColor(ImGuiCol.CheckMark, Mint);
-        ImGui.PushStyleColor(ImGuiCol.SliderGrab, Mint);
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.063f, 0.086f, 0.098f, 1));
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.078f, 0.102f, 0.114f, 1));
+        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.11f, 0.14f, 0.155f, 1));
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.19f, 0.25f, 0.28f, 1));
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, new Vector4(0.24f, 0.32f, 0.36f, 1));
+        ImGui.PushStyleColor(ImGuiCol.Header, new Vector4(0.14f, 0.19f, 0.21f, 1));
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Vector4(0.19f, 0.25f, 0.28f, 1));
+        ImGui.PushStyleColor(ImGuiCol.HeaderActive, new Vector4(0.24f, 0.32f, 0.36f, 1));
+        ImGui.PushStyleColor(ImGuiCol.CheckMark, Accent);
+        ImGui.PushStyleColor(ImGuiCol.SliderGrab, Accent);
+        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.91f, 0.93f, 0.92f, 1));
+        ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(0.18f, 0.22f, 0.24f, 1));
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0.11f, 0.14f, 0.155f, 1));
+        ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, new Vector4(0.19f, 0.25f, 0.28f, 1));
+        ImGui.PushStyleColor(ImGuiCol.FrameBgActive, new Vector4(0.24f, 0.32f, 0.36f, 1));
+        ImGui.PushStyleColor(ImGuiCol.Tab, new Vector4(0.09f, 0.12f, 0.135f, 1));
+        ImGui.PushStyleColor(ImGuiCol.TabHovered, new Vector4(0.22f, 0.29f, 0.33f, 1));
+        ImGui.PushStyleColor(ImGuiCol.TabActive, new Vector4(0.18f, 0.24f, 0.28f, 1));
+        ImGui.PushStyleColor(ImGuiCol.TitleBg, new Vector4(0.05f, 0.07f, 0.08f, 1));
+        ImGui.PushStyleColor(ImGuiCol.TitleBgActive, new Vector4(0.05f, 0.07f, 0.08f, 1));
         try
         {
             if (open) DrawMain();
             if (config.ShowMini) DrawMini();
         }
-        finally { ImGui.PopStyleColor(10); ImGui.PopStyleVar(5); }
+        finally { ImGui.PopStyleColor(20); ImGui.PopStyleVar(5); }
     }
 
     private void DrawMain()
@@ -59,8 +71,8 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.SetNextWindowSizeConstraints(new Vector2(850, 540), new Vector2(1800, 1200));
         if (ImGui.Begin("Aether Radio###AetherRadio.Main", ref open, ImGuiWindowFlags.NoCollapse))
         {
-            ImGui.TextColored(Mint, "AETHER RADIO");
-            ImGui.SameLine(); ImGui.TextColored(Muted, "いつもの景色に、好きな音楽を。");
+            ImGui.TextColored(Accent, "AETHER RADIO");
+            ImGui.SameLine(); ImGui.TextColored(Muted, "BGMプレイヤー");
             ImGui.Separator();
             if (ImGui.BeginTabBar("tabs"))
             {
@@ -74,8 +86,8 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
                 ImGui.PopStyleColor(4);
                 if (support)
                 {
-                    ImGui.Spacing(); ImGui.TextColored(Mint, "Aether Radio by Roxyz0501");
-                    ImGui.TextWrapped("気に入っていただけたら、任意で開発を支援できます。支援の有無による機能の違いはありません。");
+                    ImGui.Spacing(); ImGui.TextColored(Accent, "Aether Radio by Roxyz0501");
+                    ImGui.TextWrapped("Ko-fiから開発を支援できます（任意）。");
                     ImGui.Spacing(); ImGui.TextUnformatted("支援先: Roxyz0501");
                     if (ImGui.Button("Ko-fiで支援する"))
                     {
@@ -98,13 +110,14 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             ImGui.TextWrapped(player.Error ?? "ゲーム内の曲一覧を読み込んでいます…");
             return;
         }
+        DrawFilters();
         ImGui.TextColored(Muted, "曲名・コンテンツ名・BGM IDで検索");
         ImGui.SetNextItemWidth(-1);
-        if (TextInput("##search", ref search, 256)) page = 0;
+        if (TextInput("##search", ref search, 256)) resetScroll = true;
         var height = Math.Max(180, ImGui.GetContentRegionAvail().Y - 145);
         if (ImGui.BeginChild("nav", new Vector2(185, height), true))
         {
-            ImGui.TextColored(Muted, "YOUR LIBRARY");
+            ImGui.TextColored(Muted, "ライブラリ");
             Nav("すべての曲", 0);
             Nav("お気に入り", 1);
             ImGui.Separator();
@@ -112,7 +125,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             foreach (var list in config.Playlists)
             {
                 if (ImGui.Selectable($"{list.Name}##{list.Id}", library == 2 && playlist == list.Id))
-                { library = 2; playlist = list.Id; rename = list.Name; page = 0; }
+                { library = 2; playlist = list.Id; rename = list.Name; resetScroll = true; }
             }
             ImGui.SetNextItemWidth(-1);
             ImGui.TextColored(Muted, "新しいリスト名");
@@ -129,7 +142,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.EndChild(); ImGui.SameLine();
         if (ImGui.BeginChild("tracks", new Vector2(0, height), true))
         {
-            DrawFilters();
+
             var list = config.Playlists.FirstOrDefault(x => x.Id == playlist);
             if (library == 2 && list != null) DrawListEditor(list);
             RefreshVisible(list);
@@ -143,18 +156,11 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
                 player.Start(visible[Random.Shared.Next(visible.Count)], visible.Select(t => t.Id));
             }
             ImGui.EndDisabled();
-            var pages = Math.Max(1, (visible.Count + 74) / 75);
-            page = Math.Clamp(page, 0, pages - 1);
-            if (pages > 1)
-            {
-                if (ImGui.SmallButton("前ページ")) page = Math.Max(0, page - 1);
-                ImGui.SameLine(); ImGui.TextUnformatted($"{page + 1} / {pages}"); ImGui.SameLine();
-                if (ImGui.SmallButton("次ページ")) page = Math.Min(pages - 1, page + 1);
-            }
             if (ImGui.BeginChild("song-scroll", new Vector2(0, 0), false))
             {
                 if (visible.Count == 0) ImGui.TextWrapped("該当する曲がありません。検索条件を変えるか、曲の「＋」からマイリストに追加してください。");
-                foreach (var track in visible.Skip(page * 75).Take(75)) DrawTrack(track, list);
+                if (resetScroll) { ImGui.SetScrollY(0); resetScroll = false; }
+                DrawTrackList(list);
             }
             ImGui.EndChild();
         }
@@ -165,36 +171,67 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
 
     private void Nav(string label, int mode)
     {
-        if (ImGui.Selectable(label, library == mode)) { library = mode; page = 0; }
+        if (ImGui.Selectable(label, library == mode)) { library = mode; resetScroll = true; }
     }
     private void DrawFilters()
     {
-        ImGui.SetNextItemWidth(220);
         var locations = allLocations ??= catalog.Tracks.Values.SelectMany(t => t.Locations).Distinct().ToArray();
-        var label = expansion == null ? "すべての拡張" : locations.FirstOrDefault(x => x.ExpansionId == expansion)?.Expansion ?? "その他";
-        if (ImGui.BeginCombo("##expansion", label))
+        if (ImGui.BeginTabBar("expansions", ImGuiTabBarFlags.FittingPolicyScroll))
         {
-            if (ImGui.Selectable("すべての拡張", expansion == null)) { expansion = null; area = null; page = 0; }
+            ExpansionTab("すべて", null);
             foreach (var group in locations.GroupBy(x => x.ExpansionId).OrderBy(x => x.Key))
-                if (ImGui.Selectable(group.First().Expansion, expansion == group.Key)) { expansion = group.Key; area = null; page = 0; }
-            ImGui.EndCombo();
+                ExpansionTab(group.First().Expansion, group.Key);
+            ImGui.EndTabBar();
         }
-        ImGui.SameLine(); ImGui.SetNextItemWidth(-1);
+        var scoped = locations.Where(x => expansion == null || x.ExpansionId == expansion).ToArray();
+        if (ImGui.BeginTabBar("genres", ImGuiTabBarFlags.FittingPolicyScroll))
+        {
+            GenreTab("すべて", null);
+            foreach (var name in scoped.Select(x => x.Category).Distinct().OrderBy(GenreOrder).ThenBy(x => x)) GenreTab(name, name);
+            ImGui.EndTabBar();
+        }
+        ImGui.SetNextItemWidth(-1);
         if (ImGui.BeginCombo("##area", area ?? "すべてのコンテンツ／フィールド"))
         {
-            if (ImGui.Selectable("すべて", area == null)) { area = null; page = 0; }
-            foreach (var loc in locations.Where(x => expansion == null || x.ExpansionId == expansion).OrderBy(x => x.Category).ThenBy(x => x.Name).DistinctBy(x => x.Category + ": " + x.Name))
-            {
-                var key = loc.Category + ": " + loc.Name;
-                if (ImGui.Selectable(key, area == key)) { area = key; page = 0; }
-            }
+            if (ImGui.Selectable("すべて", area == null)) { area = null; resetScroll = true; }
+            foreach (var name in scoped.Where(x => genre == null || x.Category == genre).Select(x => x.Name).Distinct().OrderBy(x => x))
+                if (ImGui.Selectable(name, area == name)) { area = name; resetScroll = true; }
             ImGui.EndCombo();
         }
-        if (ImGui.SmallButton("絞り込みを解除")) { expansion = null; area = null; search = ""; page = 0; }
+    }
+    private void ExpansionTab(string label, uint? id)
+    {
+        if (!ImGui.BeginTabItem(label)) return;
+        if (expansion != id) { expansion = id; genre = null; area = null; resetScroll = true; }
+        ImGui.EndTabItem();
+    }
+    private void GenreTab(string label, string? value)
+    {
+        // Separate tab state for each expansion avoids retaining a hidden genre.
+        ImGui.PushID(expansion?.ToString() ?? "all");
+        if (ImGui.BeginTabItem(label))
+        {
+            if (genre != value) { genre = value; area = null; resetScroll = true; }
+            ImGui.EndTabItem();
+        }
+        ImGui.PopID();
+    }
+    private static int GenreOrder(string name) => name switch
+    {
+        "討滅" => 0, "レイド" => 1, "ダンジョン" => 2, "フィールド" => 3, "その他" => 99, _ => 4,
+    };
+    private void DrawTrackList(Playlist? list)
+    {
+        // Only submit visible rows while preserving a single continuous scroll range.
+        var clipper = new ImGuiListClipper();
+        clipper.Begin(visible.Count);
+        while (clipper.Step())
+            for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) DrawTrack(visible[i], list);
+        clipper.End();
     }
     private void RefreshVisible(Playlist? list)
     {
-        var key = $"{search}|{expansion}|{area}|{library}|{playlist}|{revision}";
+        var key = $"{search}|{expansion}|{genre}|{area}|{library}|{playlist}|{revision}";
         if (cacheKey == key) return;
         cacheKey = key;
         IEnumerable<Track> source = library switch
@@ -204,7 +241,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             _ => catalog.Tracks.Values.OrderBy(t => t.Title),
         };
         visible = source.Where(t => (string.IsNullOrWhiteSpace(search) || t.SearchText.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)) &&
-            t.Locations.Any(l => (expansion == null || l.ExpansionId == expansion) && (area == null || l.Category + ": " + l.Name == area))).ToList();
+            t.Locations.Any(l => (expansion == null || l.ExpansionId == expansion) && (genre == null || l.Category == genre) && (area == null || l.Name == area))).ToList();
     }
     private void DrawTrack(Track track, Playlist? list)
     {
@@ -268,46 +305,131 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private void DrawMini()
     {
         var viewport = ImGui.GetMainViewport();
-        var size = new Vector2(370, 212);
+        var size = new Vector2(420, 218);
         if (config.Corner != 0)
         {
             var right = config.Corner is 2 or 4;
             var bottom = config.Corner is 3 or 4;
             ImGui.SetNextWindowPos(viewport.WorkPos + new Vector2(right ? viewport.WorkSize.X - size.X - 18 : 18, bottom ? viewport.WorkSize.Y - size.Y - 18 : 18), ImGuiCond.Always);
         }
+        else if (config.MiniPosition is { } saved)
+            ImGui.SetNextWindowPos(viewport.WorkPos + ClampMiniPosition(saved, viewport.WorkSize, size), ImGuiCond.Always);
         else ImGui.SetNextWindowPos(viewport.WorkPos + new Vector2(18, 80), ImGuiCond.FirstUseEver);
         ImGui.SetNextWindowSize(size);
         ImGui.SetNextWindowBgAlpha(config.Opacity);
-        var flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar;
-        if (config.PinMini || config.Corner != 0) flags |= ImGuiWindowFlags.NoMove;
+        var flags = ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove;
         if (ImGui.Begin("##AetherRadio.Mini", flags))
         {
-            ImGui.TextColored(Mint, "AETHER RADIO");
-            ImGui.SameLine(ImGui.GetWindowWidth() - 116);
+            var header = ImGui.GetCursorScreenPos();
+            ImGui.InvisibleButton("##move-mini", new Vector2(Math.Max(80, ImGui.GetContentRegionAvail().X - 140), 22));
+            ImGui.GetWindowDrawList().AddText(header + new Vector2(0, 3), ImGui.ColorConvertFloat4ToU32(Accent), "AETHER RADIO");
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(config.PinMini ? "位置を固定しています。「解除」で移動できます。" : "ここをドラッグして移動");
+            if (!config.PinMini && ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+            {
+                var delta = ImGui.GetIO().MouseDelta;
+                if (delta != Vector2.Zero)
+                {
+                    config.Corner = 0;
+                    config.MiniPosition = ClampMiniPosition(ImGui.GetWindowPos() + delta - viewport.WorkPos, viewport.WorkSize, size);
+                    ImGui.SetWindowPos(viewport.WorkPos + config.MiniPosition.Value);
+                    miniDragged = true;
+                }
+            }
+            if (miniDragged && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { miniDragged = false; Changed(); }
+            ImGui.SameLine();
+            if (ImGui.SmallButton(config.PinMini ? "解除" : "固定")) { config.PinMini = !config.PinMini; Changed(); }
+            ImGui.SameLine();
             if (ImGui.SmallButton("開く")) open = true;
             ImGui.SameLine();
             if (ImGui.SmallButton("×")) { config.ShowMini = false; Changed(); }
-            NowPlaying(true);
+            DrawMiniPlayback();
         }
         ImGui.End();
     }
+    private void DrawMiniPlayback()
+    {
+        var origin = ImGui.GetCursorScreenPos();
+        var draw = ImGui.GetWindowDrawList();
+        var tile = ImGui.ColorConvertFloat4ToU32(new Vector4(0.14f, 0.19f, 0.20f, 1));
+        draw.AddRectFilled(origin, origin + new Vector2(48), tile, 5);
+        for (var i = 0; i < 4; i++) draw.AddCircle(origin + new Vector2(24), 10 + i * 3, 0xff45534a, 32, 1);
+        draw.AddCircleFilled(origin + new Vector2(24), 5, 0xffb0c69b);
+        draw.AddCircleFilled(origin + new Vector2(24), 1.5f, tile);
+        ImGui.Dummy(new Vector2(48)); ImGui.SameLine();
+        ImGui.BeginGroup();
+        var title = player.Current?.Title ?? "曲を選んでください";
+        if (ImGui.BeginChild("mini-title", new Vector2(ImGui.GetContentRegionAvail().X, 24), false, ImGuiWindowFlags.NoScrollbar)) ImGui.TextUnformatted(title);
+        ImGui.EndChild();
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(title);
+        ImGui.TextColored(Muted, player.Current?.Locations.FirstOrDefault()?.Expansion ?? "Aether Radio");
+        ImGui.EndGroup();
+        ImGui.Spacing();
+        var timeline = ImGui.GetCursorScreenPos();
+        var width = ImGui.GetContentRegionAvail().X;
+        draw.AddLine(timeline, timeline + new Vector2(width, 0), 0xff3d4549, 3);
+        // This is an advance timer, not an audio seek bar.
+        if (player.IsPlaying && config.AutoAdvance && config.Repeat != RepeatMode.One)
+            draw.AddLine(timeline, timeline + new Vector2(width * Math.Clamp((float)player.Elapsed / player.AdvanceSeconds, 0, 1), 0), ImGui.ColorConvertFloat4ToU32(Accent), 3);
+        ImGui.Dummy(new Vector2(width, 2));
+        ImGui.BeginDisabled(!CatalogReady || !player.Available);
+        if (TransportButton("shuffle", "ランダム再生", config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
+        ImGui.SameLine(); if (TransportButton("previous", "前の曲")) player.Previous();
+        ImGui.SameLine(); if (TransportButton(player.IsPlaying ? "stop" : "play", player.IsPlaying ? "停止してゲームBGMへ戻す" : "再生", true)) { if (player.IsPlaying) player.Stop(); else player.Resume(); }
+        ImGui.SameLine(); if (TransportButton("next", "次の曲")) player.Next();
+        ImGui.EndDisabled();
+        ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 157);
+        if (gameConfig.TryGet(SystemConfigOption.SoundBgm, out uint volume))
+        {
+            var v = (int)volume; ImGui.SetNextItemWidth(135);
+            if (ImGui.SliderInt("##mini-volume", ref v, 0, 100, "%d%%")) gameConfig.Set(SystemConfigOption.SoundBgm, (uint)v);
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("BGM音量");
+        }
+        ImGui.TextColored(Muted, player.Error != null ? "「開く」で再生状況を確認" : !player.IsPlaying ? "停止中" : config.AutoAdvance && config.Repeat != RepeatMode.One ? $"約{Math.Max(0, player.AdvanceSeconds - (int)player.Elapsed)}秒で次の曲" : config.LockBgm ? "BGM固定中" : "再生中");
+    }
+    private static bool TransportButton(string icon, string tooltip, bool accent = false)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Button, accent ? Accent : new Vector4(0, 0, 0, 0));
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, accent ? new Vector4(0.72f, 0.86f, 1, 1) : new Vector4(0.19f, 0.25f, 0.28f, 1));
+        var clicked = ImGui.Button("##" + icon, new Vector2(34));
+        ImGui.PopStyleColor(2);
+        var c = (ImGui.GetItemRectMin() + ImGui.GetItemRectMax()) / 2;
+        var color = ImGui.ColorConvertFloat4ToU32((accent ? new Vector4(0.06f, 0.09f, 0.11f, 1) : new Vector4(0.8f, 0.85f, 0.86f, 1)) with { W = ImGui.GetStyle().Alpha });
+        var d = ImGui.GetWindowDrawList();
+        if (icon == "stop") d.AddRect(c - new Vector2(5), c + new Vector2(5), color, 0, ImDrawFlags.None, 1.4f);
+        else if (icon == "shuffle")
+        {
+            d.AddLine(c + new Vector2(-7, -5), c + new Vector2(7, 5), color, 1.4f);
+            d.AddLine(c + new Vector2(-7, 5), c + new Vector2(7, -5), color, 1.4f);
+            d.AddLine(c + new Vector2(3, -5), c + new Vector2(7, -5), color, 1.4f);
+            d.AddLine(c + new Vector2(7, -5), c + new Vector2(7, -1), color, 1.4f);
+            d.AddLine(c + new Vector2(3, 5), c + new Vector2(7, 5), color, 1.4f);
+        }
+        else
+        {
+            var direction = icon == "previous" ? -1 : 1;
+            d.AddTriangle(c + new Vector2(-4 * direction, -7), c + new Vector2(-4 * direction, 7), c + new Vector2(6 * direction, 0), color, 1.4f);
+            if (icon != "play") d.AddLine(c + new Vector2(8 * direction, -7), c + new Vector2(8 * direction, 7), color, 1.4f);
+        }
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
+        return clicked;
+    }
     private void NowPlaying(bool mini)
     {
-        ImGui.TextColored(Muted, player.IsPlaying ? "NOW PLAYING" : "好きな曲を選んで再生");
-        var title = player.Current?.Title ?? "Aether Radioへようこそ";
+        ImGui.TextColored(Muted, player.IsPlaying ? "再生中" : "停止中");
+        var title = player.Current?.Title ?? "曲が選択されていません";
         // A clipped single-line title keeps long localized names inside the mini player.
         if (ImGui.BeginChild("title", new Vector2(0, ImGui.GetTextLineHeight() + 2), false, ImGuiWindowFlags.NoScrollbar)) ImGui.TextUnformatted(title);
         ImGui.EndChild();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(title);
         ImGui.BeginDisabled(!CatalogReady || !player.Available);
-        if (ImGui.Button("|<")) player.Previous();
+        if (TransportButton("previous", "前の曲")) player.Previous();
         ImGui.SameLine();
-        if (ImGui.Button(player.IsPlaying ? "停止" : "再生")) { if (player.IsPlaying) player.Stop(); else player.Resume(); }
-        ImGui.SameLine(); if (ImGui.Button(">|")) player.Next();
+        if (TransportButton(player.IsPlaying ? "stop" : "play", player.IsPlaying ? "停止してゲームBGMへ戻す" : "再生", true)) { if (player.IsPlaying) player.Stop(); else player.Resume(); }
+        ImGui.SameLine(); if (TransportButton("next", "次の曲")) player.Next();
         ImGui.SameLine();
-        var shuffle = config.Shuffle;
-        if (ImGui.Checkbox("ランダム", ref shuffle)) { config.Shuffle = shuffle; player.Queue.Shuffle = shuffle; Changed(); }
+        if (TransportButton("shuffle", "ランダム再生", config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
         ImGui.EndDisabled();
+        ImGui.SameLine(); ImGui.SetCursorPosX(250);
         if (gameConfig.TryGet(SystemConfigOption.SoundBgm, out uint volume))
         {
             var v = (int)volume; ImGui.SetNextItemWidth(mini ? 170 : 220);
@@ -323,7 +445,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     }
     private void DrawSettings()
     {
-        ImGui.Spacing(); ImGui.TextColored(Mint, "再生");
+        ImGui.Spacing(); ImGui.TextColored(Accent, "再生");
         var locked = config.LockBgm;
         if (ImGui.Checkbox("再生中はコンテンツ・戦闘・フィールドのBGM変更を無視", ref locked)) { config.LockBgm = locked; Changed(); }
         ImGui.TextWrapped("オフの場合、ゲームから次のBGM変更要求が来た時点で通常のBGMへ戻ります。停止・ログアウト・プラグイン終了時にも固定を解除します。");
@@ -336,17 +458,18 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (ImGui.Checkbox("曲名データの収録時間を曲送りの目安に使う", ref useDuration)) { config.UseTrackDuration = useDuration; Changed(); }
         if (ImGui.SliderInt("曲送り間隔（秒）", ref seconds, 15, 1800)) { config.TrackSeconds = seconds; Changed(); }
         ImGui.TextWrapped("自動曲送りは収録時間の目安（不明な曲は指定秒数）で切り替えます。曲の終了検知ではありません。1曲リピートではゲーム本来の再生・ループを維持します。");
-        ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Mint, "ミニプレイヤー");
+        ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Accent, "ミニプレイヤー");
         var show = config.ShowMini; if (ImGui.Checkbox("ミニプレイヤーを表示", ref show)) { config.ShowMini = show; Changed(); }
         var corner = config.Corner;
         if (ImGui.Combo("配置", ref corner, "自由に移動\0左上\0右上\0左下\0右下\0")) { config.Corner = corner; Changed(); }
-        var pin = config.PinMini; if (ImGui.Checkbox("自由配置の位置を固定", ref pin)) { config.PinMini = pin; Changed(); }
+        var pin = config.PinMini; if (ImGui.Checkbox("位置を固定", ref pin)) { config.PinMini = pin; Changed(); }
+        ImGui.TextWrapped("ミニプレイヤー上部の「AETHER RADIO」をドラッグすると移動できます。");
         var opacity = config.Opacity; if (ImGui.SliderFloat("背景の不透明度", ref opacity, 0.5f, 1, "%.2f")) { config.Opacity = opacity; Changed(); }
-        ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Mint, "ライブラリ情報");
+        ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Accent, "ライブラリ情報");
         if (CatalogReady)
         {
             ImGui.TextUnformatted($"{catalog.Tracks.Count:N0} 曲 / ファイル未収録 {catalog.MissingFiles:N0} 件");
-            ImGui.TextWrapped("インストール済みゲームデータのBGM表を読み取ります。正式曲名を取得できない曲はIDとファイル名で表示します。分類できない曲は「その他」にあります。");
+            ImGui.TextWrapped("インストール済みゲームデータのBGM表を読み取ります。曲名が不明な曲は「曲名未登録」と表示します。場所が分かる場合は場所名を添えています。分類できない曲は「その他」にあります。");
             foreach (var warning in catalog.Warnings) ImGui.TextWrapped(warning);
         }
         ImGui.TextWrapped("/aetherradio で開く · /aetherradio stop でゲームBGMへ戻す");
@@ -355,11 +478,14 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     }
     private void Changed() { revision++; save(); }
 
+    private static Vector2 ClampMiniPosition(Vector2 position, Vector2 viewport, Vector2 size) =>
+        Vector2.Clamp(position, Vector2.Zero, Vector2.Max(Vector2.Zero, viewport - size));
+
     private static bool FavoriteButton(bool selected)
     {
         var clicked = ImGui.Button("##favorite", new Vector2(22, 22));
         var center = (ImGui.GetItemRectMin() + ImGui.GetItemRectMax()) / 2;
-        var color = ImGui.ColorConvertFloat4ToU32(selected ? Mint : Muted);
+        var color = ImGui.ColorConvertFloat4ToU32(selected ? Accent : Muted);
         var draw = ImGui.GetWindowDrawList();
         for (var i = 0; i < 10; i++)
         {

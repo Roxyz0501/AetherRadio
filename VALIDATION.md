@@ -1,6 +1,18 @@
-# Validation — 2026-10-03
+# Validation — 2026-10-04
 
-Version: 0.1.0.0 (public preview). Author: Roxyz0501.
+Version: 0.1.1.0 (public preview). Author: Roxyz0501.
+
+## 0.1.1.0 UI verification
+
+- Actual RadioUi rendered in an isolated ImGui context with title-bar-only movement enabled.
+- Dragging the mini header detaches corner placement; one save occurs on mouse release.
+- Pinned movement is ignored; saved Vector2 position survives Newtonsoft JSON roundtrip.
+- Expansion and genre tabs filter together; Japanese search accepts typed text.
+- All 1,293 tracks remain in a continuous list; the bottom is reachable and rendering stays below 20,000 vertices in the harness.
+- Library, filtered list, end of list, settings, Support and moved mini-player previews inspected.
+- ContentType-based trial, raid and dungeon classification checked against local game data.
+- Unknown titles never substitute raw BGM_EX file names; they remain explicitly marked unknown.
+- BgmPlayback.cs and Player.cs are unchanged from 0.1.0.0. No packet send or network hook added.
 
 ## Completed
 
@@ -8,16 +20,16 @@ Version: 0.1.0.0 (public preview). Author: Roxyz0501.
 - 12 managed playback queue checks: empty/single queues, deduplication, ordering,
   history, manual skipping, repeat off/all/one, complete shuffle cycles,
   shuffle cycle boundaries and selection retention.
-- Six additional checks against an installed Japanese game data set:
+- Nine additional checks against an installed Japanese game data set:
   full BGM-row coverage, complete fallback categorization, successful sheet loading,
   field mapping, duty mapping and bundled Japanese title resolution.
 - Catalogue: 1,293 installed BGM entries; 1,015 with meaningful song-title metadata;
-  625 in Other; two sheet entries reference missing audio files and are excluded.
-  Placeholder titles such as `???` fall back to the BGM ID and file name.
+  625 without any expansion mapping (628 exclusively in the Other genre); two sheet entries reference missing audio files and are excluded.
+  Placeholder titles such as `???` are marked as unknown, with a location when available and a stable BGM ID.
   A song can appear under multiple expansions/locations.
 - Release package checked for author, RepoUrl and IconUrl retention, icon and
   upstream MIT license. Host SDK assemblies are not bundled.
-- Publication recheck: clean Release build and all 18 checks passed. Public
+- Publication recheck: clean Release build and all 21 checks passed. Public
   repository, image and download URLs returned HTTP 200 without authentication.
   The downloaded ZIP's SHA-256 and packaged metadata match the released artifact.
 - Source inspected for packet/network/event-send code: none implemented.
