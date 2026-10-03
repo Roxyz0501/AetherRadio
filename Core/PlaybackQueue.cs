@@ -17,6 +17,14 @@ public sealed class PlaybackQueue(Random? random = null)
     }
     public RepeatMode Repeat { get; set; } = RepeatMode.All;
 
+    public void Clear()
+    {
+        items.Clear();
+        bag.Clear();
+        history.Clear();
+        Current = null;
+    }
+
     public void Start(IEnumerable<ushort> source, ushort selected)
     {
         items = source.Distinct().ToList();

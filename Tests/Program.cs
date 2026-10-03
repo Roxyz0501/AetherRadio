@@ -68,6 +68,8 @@ Check(mixer.Writes == writes, "Invalid native mixer levels are never written bac
 mixer.Owner = 0; gain.Apply(50);
 Check(mixer.Writes == writes, "Missing sound manager is safe");
 
+SessionTests.Run(Check);
+
 if (args.Length > 0)
 {
     using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Language.Japanese, CacheFileResources = false });

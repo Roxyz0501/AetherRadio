@@ -7,9 +7,13 @@
   <ItemGroup>
     <Compile Include="../Core/*.cs" Link="Core/%(Filename)%(Extension)" />
     <Compile Include="../AetherRadio/Catalog.cs" Link="Catalog.cs" />
+    <Compile Include="../AetherRadio/Player.cs" Link="Player.cs" />
+    <Compile Include="../AetherRadio/Configuration.cs" Link="Configuration.cs" />
     <EmbeddedResource Include="../AetherRadio/Data/*.csv" LogicalName="AetherRadio.Data.%(Filename)%(Extension)" />
     <Reference Include="Lumina" HintPath="$(DalamudLibPath)Lumina.dll" />
     <Reference Include="Lumina.Excel" HintPath="$(DalamudLibPath)Lumina.Excel.dll" />
     <Reference Include="Newtonsoft.Json" HintPath="$(DalamudLibPath)Newtonsoft.Json.dll" />
+    <Reference Include="Dalamud" HintPath="$(DalamudLibPath)Dalamud.dll" />
+    <Reference Include="Serilog" HintPath="$(DalamudLibPath)Serilog.dll" />
   </ItemGroup>
 </Project>

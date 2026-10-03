@@ -1,6 +1,19 @@
 # Validation — 2026-10-04
 
-Version: 0.1.3.0 (public preview). Author: Roxyz0501.
+Version: 0.1.4.0 (public preview). Author: Roxyz0501.
+
+## 0.1.4.0 login/logout lifecycle
+
+- Login/logout events and a frame/command state check cover active and stopped playback.
+- Logout clears the selected track, queue, shuffle bag/history, clock and playback error; saved configuration is unchanged.
+- Each session releases and disposes its native hooks. The next manual play constructs a fresh engine. Initialization failures can be retried without per-frame initialization or autoplay.
+- Native cleanup discards old scene requests at logout. It resets scene 0 only when the same valid BGMSystem still contains the player's selection; newer game requests are preserved.
+- Both hook disables and volume restoration are attempted even if a cleanup step throws. Ownership is cleared before cleanup; hook disposal uses finally blocks.
+- Native hooks pass through game requests while logged out. Playback checks both BGM scene readiness and the sound manager before starting.
+- 20 new tests exercise the real Player with injected playback services: active/paused logout, missed/early/repeated events, no autoplay, all playback entry points, saved configuration, volume restoration, fresh engines, initialization/readiness retries, cleanup failure and unload.
+- Total: 44 managed checks, 53 including the installed game-data catalogue. Native hook behavior is source-reviewed; injected services do not execute game audio functions.
+- Clean Release build has zero warnings/errors. Existing command, UI filtering/search/scroll, volume, mini movement/pinning and position persistence checks pass in the isolated ImGui harness.
+- Running-game logout/relogin, title BGM and live audio restoration still require confirmation.
 
 ## 0.1.3.0 naming and command verification
 
@@ -83,7 +96,9 @@ Version: 0.1.3.0 (public preview). Author: Roxyz0501.
 4. Disable lock and verify the next game BGM request releases the override.
 5. Create/rename/reorder a playlist, test shuffle/repeat, reload and verify persistence.
 6. Check each mini-player corner, free placement, long titles and high UI scaling.
-7. Stop, logout and unload/reload; confirm hooks are released and no audio override
-   survives. Check Dalamud logs for errors.
+7. While playing at reduced volume with BGM lock enabled, log out and check that title BGM is normal.
+   Log back in, confirm no selected track or autoplay, and play a different track. Repeat after stopping first,
+   and with another character. Confirm lists, favorites, volume and position are retained.
+   Unload/reload and check that no override survives; inspect Dalamud logs for errors.
 8. Verify public RepoUrl, IconUrl (HTTP 200 + image type), release ZIP URLs, and
    packaged metadata before adding the shared repository entry.
