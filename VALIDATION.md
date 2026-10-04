@@ -1,6 +1,12 @@
 # Validation — 2026-10-04
 
-Version: 0.1.6.0 (public preview). Author: Roxyz0501.
+Version: 0.1.7.0 (public preview). Author: Roxyz0501.
+
+## 0.1.7.0 default repeat mode
+
+- User requested one-track repeat as the default while 0.1.6.0 publication was in progress. 0.1.6.0 is retained as a GitHub prerelease; the shared index advances directly from 0.1.5.0 to 0.1.7.0.
+- New configurations default to RepeatMode.One. Version-1 configurations migrate once to one-track repeat and persist schema version 2; subsequent mode choices remain untouched.
+- Four migration checks cover new defaults, existing settings, unrelated data preservation and user choices on reload. Total: 67 managed checks, 76 including offline game data.
 
 ## 0.1.6.0 volume boost and player repeat controls
 

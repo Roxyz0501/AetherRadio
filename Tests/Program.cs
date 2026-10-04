@@ -71,6 +71,7 @@ Check(mixer.Writes == writes, "Missing sound manager is safe");
 SessionTests.Run(Check);
 OrchestrionTests.Run(Check);
 VolumeBoostTests.Run(Check);
+ConfigurationTests.Run(Check);
 
 if (args.Length > 0)
 {
