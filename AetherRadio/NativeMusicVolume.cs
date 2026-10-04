@@ -27,6 +27,7 @@ public sealed unsafe class NativeMusicVolume : IMusicVolume
     {
         MusicChannel.Normal => SoundBus.Music,
         MusicChannel.TimeStretched => SoundBus.TimeStretchBGM,
+        MusicChannel.Orchestrion => SoundBus.Orchestrion,
         _ => throw new ArgumentOutOfRangeException(nameof(channel)),
     };
 }

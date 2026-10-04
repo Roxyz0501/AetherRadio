@@ -26,7 +26,7 @@
 - FFXIVClientStructs, aers and contributors:
   https://github.com/aers/FFXIVClientStructs (MIT).
   BGMSystem and SoundManager structures, generated delegates, SetBGM/ResetBGM
-  and BGM-only SoundBus volume functions.
+  and the Music, TimeStretchBGM and Orchestrion SoundBus volume functions.
   No native signature patterns or library source files are copied into this plugin.
 - Lumina / Lumina.Excel, NotAdam and contributors:
   https://github.com/NotAdam/Lumina and https://github.com/NotAdam/Lumina.Excel (MIT).

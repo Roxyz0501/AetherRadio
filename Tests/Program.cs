@@ -59,16 +59,17 @@ gain.Apply(50); mixer.Values[0] = 0.7f; gain.Restore();
 Check(Math.Abs(mixer.Values[0] - 0.7f) < 0.00001f, "Stop preserves a newer external volume change");
 gain.Apply(50); writes = mixer.Writes; mixer.Owner = 2; gain.Restore();
 Check(mixer.Writes == writes, "A replaced sound manager is not overwritten with stale levels");
-mixer.Values = [0.8f, 0.6f]; gain.Apply(-10);
+mixer.Values = [0.8f, 0.6f, 0.7f]; gain.Apply(-10);
 Check(mixer.Values.All(v => v == 0), "Negative plugin volume clamps to silence");
 gain.Apply(150);
 Check(Math.Abs(mixer.Values[0] - 0.8f) < 0.00001f, "Plugin volume cannot amplify above the captured game level");
-gain.Restore(); mixer.Values = [float.NaN, float.PositiveInfinity]; writes = mixer.Writes; gain.Apply(50); gain.Restore();
+gain.Restore(); mixer.Values = [float.NaN, float.PositiveInfinity, float.NaN]; writes = mixer.Writes; gain.Apply(50); gain.Restore();
 Check(mixer.Writes == writes, "Invalid native mixer levels are never written back");
 mixer.Owner = 0; gain.Apply(50);
 Check(mixer.Writes == writes, "Missing sound manager is safe");
 
 SessionTests.Run(Check);
+OrchestrionTests.Run(Check);
 
 if (args.Length > 0)
 {
@@ -102,12 +103,14 @@ sealed class OfflineData(GameData game) : ITrackData
 sealed class TestMusicVolume : IMusicVolume
 {
     public nint Owner { get; set; } = 1;
-    public float[] Values = [0.8f, 0.6f];
+    public float[] Values = [0.8f, 0.6f, 0.7f];
+    public MusicChannel? FailChannel;
     public int Writes;
     public float Read(nint owner, MusicChannel channel) => owner == Owner ? Values[(int)channel] : float.NaN;
     public void Write(nint owner, MusicChannel channel, float value)
     {
         if (owner != Owner) throw new InvalidOperationException("Stale mixer");
+        if (channel == FailChannel) throw new InvalidOperationException("Mixer channel unavailable");
         Values[(int)channel] = value; Writes++;
     }
 }

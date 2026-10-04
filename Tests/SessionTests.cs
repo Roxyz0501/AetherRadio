@@ -41,13 +41,13 @@ static class SessionTests
         for (var i = 0; i < 100; i++) player.Update();
         check(attempts == 0 && player.Error == null, "Login does not autoplay or initialize native hooks each frame");
         player.Start(first, [1, 2]); player.Next();
-        check(player.IsPlaying && mixer.Values[0] < 0.8f, "Session playback applies the saved BGM volume");
+        check(player.IsPlaying && mixer.Values[0] < 0.8f && mixer.Values[2] == 0, "Session playback applies BGM volume and suppresses orchestrion audio");
         state.LoggedIn = false; player.OnLogout(0, 0);
         check(!player.IsPlaying && player.Current == null && player.Elapsed == 0 && player.Error == null &&
               player.Queue.Count == 0 && player.Queue.Next() == null && player.Queue.Previous() == null,
             "Logout clears active selection, timer, queue, history and error");
         check(engines[0].Resets == 1 && engines[0].Disposals == 1 && engines[0].Stops == 0 &&
-              Math.Abs(mixer.Values[0] - 0.8f) < 0.00001f && Math.Abs(mixer.Values[1] - 0.6f) < 0.00001f,
+              Math.Abs(mixer.Values[0] - 0.8f) < 0.00001f && Math.Abs(mixer.Values[1] - 0.6f) < 0.00001f && Math.Abs(mixer.Values[2] - 0.7f) < 0.00001f,
             "Logout releases hooks and BGM volume without replaying old content requests");
         check(JsonConvert.SerializeObject(config) == saved && player.Queue.Shuffle && player.Queue.Repeat == RepeatMode.One,
             "Logout preserves playlists, favorites, volume, placement and playback preferences");
@@ -58,7 +58,7 @@ static class SessionTests
         player.Start(first, [1, 2]);
         check(player.IsPlaying && engines.Count == 2 && engines[1].Plays == 1, "Next login creates a fresh working playback engine");
         player.Stop();
-        check(player.Current == first && player.Queue.Count == 2 && engines[1].Stops == 1,
+        check(player.Current == first && player.Queue.Count == 2 && engines[1].Stops == 1 && Math.Abs(mixer.Values[2] - 0.7f) < 0.00001f,
             "Ordinary stop still retains the selected list for manual resume");
         state.LoggedIn = false; player.Update();
         check(player.Current == null && player.Queue.Count == 0 && engines[1].Disposals == 1,
@@ -92,7 +92,7 @@ static class SessionTests
         engines[^1].Ready = true; player.Resume();
         check(player.IsPlaying && player.Error == null, "Playback can retry when native initialization finishes");
         player.Dispose();
-        check(!player.IsPlaying && engines[^1].Disposals == 1, "Plugin unload disposes active playback");
+        check(!player.IsPlaying && engines[^1].Disposals == 1 && Math.Abs(mixer.Values[2] - 0.7f) < 0.00001f, "Plugin unload disposes active playback and restores orchestrion volume");
     }
 }
 

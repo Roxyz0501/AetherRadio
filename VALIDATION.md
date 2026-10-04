@@ -1,6 +1,16 @@
 # Validation — 2026-10-04
 
-Version: 0.1.4.0 (public preview). Author: Roxyz0501.
+Version: 0.1.5.0 (public preview). Author: Roxyz0501.
+
+## 0.1.5.0 orchestrion coexistence
+
+- User reports that selecting a BGMPlayer track does not replace an already-playing in-game orchestrion.
+- The native SoundManager exposes a separate Orchestrion bus, outside the existing Music/TimeStretchBGM volume handling. While playing, the volume session now suppresses only that additional music bus and restores its latest baseline on stop, logout and unload.
+- No OrchestrionManager playback/stop methods, furniture commands, network functions, system-config writes or non-music buses are used. The existing native SetVolume adapter is restricted to three explicitly named music buses.
+- Eleven new tests cover suppression at full volume, mute/unmute, unchanged-frame writes, restoration, external volume changes, initially silent orchestrions, sound-manager replacement and cleanup failure. Lifecycle tests also assert orchestrion restoration on stop/logout/unload.
+- Total: 55 managed checks, 64 including offline game-data checks. The tests use an injected mixer and do not establish audible behavior inside the running game.
+- Live acceptance remains outstanding: play an orchestrion in a room, select a BGMPlayer song, change/advance both playlists, enter/leave the room, stop, log out and unload. Confirm the selected BGM is audible and the current orchestrion track returns on stop, with SE unchanged.
+- The previous UI is unchanged.
 
 ## 0.1.4.0 login/logout lifecycle
 
