@@ -62,7 +62,7 @@ Check(mixer.Writes == writes, "A replaced sound manager is not overwritten with 
 mixer.Values = [0.8f, 0.6f, 0.7f]; gain.Apply(-10);
 Check(mixer.Values.All(v => v == 0), "Negative plugin volume clamps to silence");
 gain.Apply(150);
-Check(Math.Abs(mixer.Values[0] - 0.8f) < 0.00001f, "Plugin volume cannot amplify above the captured game level");
+Check(mixer.Values[0] == 1 && Math.Abs(mixer.Values[1] - 0.9f) < 0.00001f, "Boost raises BGM only within the native mixer ceiling");
 gain.Restore(); mixer.Values = [float.NaN, float.PositiveInfinity, float.NaN]; writes = mixer.Writes; gain.Apply(50); gain.Restore();
 Check(mixer.Writes == writes, "Invalid native mixer levels are never written back");
 mixer.Owner = 0; gain.Apply(50);
@@ -70,6 +70,7 @@ Check(mixer.Writes == writes, "Missing sound manager is safe");
 
 SessionTests.Run(Check);
 OrchestrionTests.Run(Check);
+VolumeBoostTests.Run(Check);
 
 if (args.Length > 0)
 {

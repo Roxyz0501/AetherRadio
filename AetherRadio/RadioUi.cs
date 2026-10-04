@@ -386,11 +386,22 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.SameLine(); if (TransportButton(player.IsPlaying ? "stop" : "play", player.IsPlaying ? "停止してゲームBGMへ戻す" : "再生", true)) { if (player.IsPlaying) player.Stop(); else player.Resume(); }
         ImGui.SameLine(); if (TransportButton("next", "次の曲")) player.Next();
         ImGui.EndDisabled();
+        ImGui.SameLine(); DrawRepeatButton();
         ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 157);
         DrawVolume("##mini-volume", 135);
-        ImGui.TextColored(Muted, player.Error != null ? "「開く」で再生状況を確認" : !player.IsPlaying ? "停止中" : config.AutoAdvance && config.Repeat != RepeatMode.One ? $"約{Math.Max(0, player.AdvanceSeconds - (int)player.Elapsed)}秒で次の曲" : config.LockBgm ? "BGM固定中" : "再生中");
+        ImGui.TextColored(Muted, player.Error != null ? "「開く」で再生状況を確認" : !player.IsPlaying ? "停止中" : config.Repeat == RepeatMode.One ? "1曲ループ" : config.AutoAdvance ? $"約{Math.Max(0, player.AdvanceSeconds - (int)player.Elapsed)}秒で次の曲" : config.LockBgm ? "BGM固定中" : "再生中");
     }
-    private static bool TransportButton(string icon, string tooltip, bool accent = false)
+    private void DrawRepeatButton()
+    {
+        var label = config.Repeat switch { RepeatMode.One => "1曲ループ", RepeatMode.All => "リストをループ", _ => "ループなし" };
+        if (TransportButton("repeat", label + "（クリックで切り替え）", config.Repeat != RepeatMode.Off, config.Repeat == RepeatMode.One))
+        {
+            config.Repeat = config.Repeat switch { RepeatMode.All => RepeatMode.One, RepeatMode.One => RepeatMode.Off, _ => RepeatMode.All };
+            player.Queue.Repeat = config.Repeat;
+            Changed();
+        }
+    }
+    private static bool TransportButton(string icon, string tooltip, bool accent = false, bool repeatOne = false)
     {
         ImGui.PushStyleColor(ImGuiCol.Button, accent ? Accent : new Vector4(0, 0, 0, 0));
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, accent ? new Vector4(0.72f, 0.86f, 1, 1) : new Vector4(0.19f, 0.25f, 0.28f, 1));
@@ -407,6 +418,22 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             d.AddLine(c + new Vector2(3, -5), c + new Vector2(7, -5), color, 1.4f);
             d.AddLine(c + new Vector2(7, -5), c + new Vector2(7, -1), color, 1.4f);
             d.AddLine(c + new Vector2(3, 5), c + new Vector2(7, 5), color, 1.4f);
+        }
+        else if (icon == "repeat")
+        {
+            d.AddLine(c + new Vector2(-8, 2), c + new Vector2(-8, -6), color, 1.4f);
+            d.AddLine(c + new Vector2(-8, -6), c + new Vector2(8, -6), color, 1.4f);
+            d.AddLine(c + new Vector2(8, -6), c + new Vector2(4, -10), color, 1.4f);
+            d.AddLine(c + new Vector2(8, -6), c + new Vector2(4, -2), color, 1.4f);
+            d.AddLine(c + new Vector2(8, -2), c + new Vector2(8, 6), color, 1.4f);
+            d.AddLine(c + new Vector2(8, 6), c + new Vector2(-8, 6), color, 1.4f);
+            d.AddLine(c + new Vector2(-8, 6), c + new Vector2(-4, 2), color, 1.4f);
+            d.AddLine(c + new Vector2(-8, 6), c + new Vector2(-4, 10), color, 1.4f);
+            if (repeatOne)
+            {
+                d.AddLine(c + new Vector2(-2, -2), c + new Vector2(0, -4), color, 1.6f);
+                d.AddLine(c + new Vector2(0, -4), c + new Vector2(0, 4), color, 1.6f);
+            }
         }
         else
         {
@@ -433,6 +460,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.SameLine();
         if (TransportButton("shuffle", "ランダム再生", config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
         ImGui.EndDisabled();
+        ImGui.SameLine(); DrawRepeatButton();
         ImGui.SameLine(); ImGui.SetCursorPosX(250);
         DrawVolume("プレイヤー音量", mini ? 170 : 220);
         if (mini)
@@ -445,7 +473,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private void DrawSettings()
     {
         ImGui.Spacing(); ImGui.TextColored(Accent, "再生");
-        ImGui.TextWrapped("音量は再生中のBGMだけに反映します。ゲームの音量設定は変更しません。100%はゲーム側で設定したBGM音量です。");
+        ImGui.TextWrapped("100%が通常のBGM音量です。小さく感じる場合は200%まで上げられます。ゲームの音量設定やSEは変更しません。ゲーム側の音量上限に達すると、それ以上は大きくなりません。");
         var locked = config.LockBgm;
         if (ImGui.Checkbox("再生中はコンテンツ・戦闘・フィールドのBGM変更を無視", ref locked)) { config.LockBgm = locked; Changed(); }
         ImGui.TextWrapped("オフの場合、ゲームから次のBGM変更要求が来た時点で通常のBGMへ戻ります。停止・ログアウト・プラグイン終了時にも固定を解除します。");
@@ -482,9 +510,9 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     {
         var percent = config.VolumePercent;
         ImGui.SetNextItemWidth(width);
-        if (ImGui.SliderInt(label, ref percent, 0, 100, "%d%%")) config.VolumePercent = percent;
+        if (ImGui.SliderInt(label, ref percent, 0, BgmVolumeSession.MaxPercent, "%d%%", ImGuiSliderFlags.AlwaysClamp)) config.VolumePercent = percent;
         if (ImGui.IsItemDeactivatedAfterEdit()) save();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("プレイヤー音量。100%はゲーム設定のBGM音量。SE・ボイス・環境音の音量は変更しません。");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("100%が通常音量。最大200%（ゲーム側の上限まで）。SE・ボイス・環境音は変更しません。");
     }
 
     private static Vector2 ClampMiniPosition(Vector2 position, Vector2 viewport, Vector2 size) =>

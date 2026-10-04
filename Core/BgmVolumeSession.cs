@@ -12,6 +12,7 @@ public interface IMusicVolume
 
 public sealed class BgmVolumeSession(IMusicVolume output)
 {
+    public const int MaxPercent = 200;
     private static readonly MusicChannel[] Channels = [MusicChannel.Normal, MusicChannel.TimeStretched, MusicChannel.Orchestrion];
     private sealed class Level(float baseline)
     {
@@ -26,7 +27,7 @@ public sealed class BgmVolumeSession(IMusicVolume output)
         var currentOwner = output.Owner;
         if (owner != currentOwner) { levels.Clear(); owner = currentOwner; }
         if (owner == 0) return;
-        var gain = Math.Clamp(percent, 0, 100) / 100f;
+        var gain = Math.Clamp(percent, 0, MaxPercent) / 100f;
         foreach (var channel in Channels)
         {
             var current = output.Read(owner, channel);
@@ -36,7 +37,7 @@ public sealed class BgmVolumeSession(IMusicVolume output)
             if (!Same(current, level.Applied)) level.Baseline = current;
             // The game's orchestrion plays outside BGMSystem scene priority.
             // Keep it running silently so Stop can reveal its current track.
-            var target = channel == MusicChannel.Orchestrion ? 0 : level.Baseline * gain;
+            var target = channel == MusicChannel.Orchestrion ? 0 : Math.Min(1, level.Baseline * gain);
             if (!Same(current, target)) output.Write(owner, channel, target);
             level.Applied = target;
         }

@@ -2,7 +2,7 @@
   "Author": "Roxyz0501",
   "Name": "BGMPlayer",
   "InternalName": "AetherRadio",
-  "AssemblyVersion": "0.1.5.0",
+  "AssemblyVersion": "0.1.6.0",
   "DalamudApiLevel": 15,
   "ApplicableVersion": "any",
   "Punchline": "ゲーム内のBGMを選んで再生できます。",
@@ -16,9 +16,9 @@
   ],
   "RepoUrl": "https://github.com/Roxyz0501/AetherRadio",
   "IconUrl": "https://raw.githubusercontent.com/Roxyz0501/AetherRadio/main/images/icon.png",
-  "DownloadLinkInstall": "https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.5.0/AetherRadio-0.1.5.0.zip",
-  "DownloadLinkUpdate": "https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.5.0/AetherRadio-0.1.5.0.zip",
-  "DownloadLinkTesting": "https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.5.0/AetherRadio-0.1.5.0.zip",
+  "DownloadLinkInstall": "https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.6.0/AetherRadio-0.1.6.0.zip",
+  "DownloadLinkUpdate": "https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.6.0/AetherRadio-0.1.6.0.zip",
+  "DownloadLinkTesting": "https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.6.0/AetherRadio-0.1.6.0.zip",
   "IsHide": false,
   "IsTestingExclusive": false
 }

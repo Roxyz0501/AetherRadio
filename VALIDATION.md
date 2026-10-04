@@ -1,6 +1,16 @@
 # Validation — 2026-10-04
 
-Version: 0.1.5.0 (public preview). Author: Roxyz0501.
+Version: 0.1.6.0 (public preview). Author: Roxyz0501.
+
+## 0.1.6.0 volume boost and player repeat controls
+
+- User confirmed playback at 100% matches normal game BGM and requested a higher level. Both sliders now permit 0–200%; 100% retains the original behavior. No saved volume is automatically increased.
+- Boost uses the existing temporary Music/TimeStretchBGM mixer gain, capped at the native 0–1 bus range. Master volume and mute remain effective; the multiplier does not guarantee twice the perceived loudness. Orchestrion suppression and restoration are retained.
+- Eight new managed checks cover boost, no cumulative gain/repeated writes, 100% return, mute/stop restoration, out-of-range input, game-side changes, silent baselines and the native ceiling.
+- Main and mini players have a repeat button cycling All → One → Off. One uses the existing native track loop and disables automatic track advance. Queue/config values are synchronized and saved on click; no estimated-duration restart is added.
+- The isolated ImGui harness clicks both sliders above 100%, cycles repeat from both players, verifies queue state and JSON persistence, and passes existing command/filter/drag/pin checks. The actual UI was rendered and inspected for layout/overlap.
+- Total: 63 managed checks; 72 including offline game data. Clean Release build: zero warnings/errors.
+- Live listening remains unverified. Non-looping game tracks still follow their native playback behavior; the loop button does not synthesize loops for short effect tracks.
 
 ## 0.1.5.0 orchestrion coexistence
 

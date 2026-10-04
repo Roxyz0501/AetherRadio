@@ -25,7 +25,7 @@ public sealed class Plugin : IDalamudPlugin
         foreach (var list in config.Playlists) { list.Tracks ??= []; list.Name ??= "マイリスト"; }
         config.TrackSeconds = Math.Clamp(config.TrackSeconds, 15, 1800);
         config.Opacity = Math.Clamp(config.Opacity, 0.5f, 1);
-        config.VolumePercent = Math.Clamp(config.VolumePercent, 0, 100);
+        config.VolumePercent = Math.Clamp(config.VolumePercent, 0, Core.BgmVolumeSession.MaxPercent);
         config.Corner = Math.Clamp(config.Corner, 0, 4);
         var catalog = new Catalog(new DalamudTrackData(data), (e, label) => log.Warning(e, "Catalogue enrichment: {Label}", label));
         player = new Player(config, catalog, null, client, log,
