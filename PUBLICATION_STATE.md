@@ -4,23 +4,23 @@ Updated: 2026-10-04 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
-- Public preview version: 0.1.4.0.
+- Public preview version: 0.1.5.0.
 - Dedicated repository: https://github.com/Roxyz0501/AetherRadio
 - Repository visibility: public.
-- Public Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v0.1.4.0
-- Release tag: `v0.1.4.0`; published as a prerelease, not a draft.
-- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.4.0/AetherRadio-0.1.4.0.zip
+- Public Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v0.1.5.0
+- Release tag: `v0.1.5.0`; published as a prerelease, not a draft.
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.5.0/AetherRadio-0.1.5.0.zip
 - Native in-game acceptance tests remain outstanding, as documented in the release.
-- ZIP SHA-256: `500B84C5838CFB0A1F6B51C976114AE4F7F8E2D0A8CBB18672E4DB8F71FE6F42`.
+- ZIP SHA-256: `928D376B8C2015D7D719D7156AD11EE6CFC5B217F6DB80FD51AD8B1D4121DF3B`.
 - Verified unauthenticated HTTP 200 for RepoUrl, IconUrl (image content type) and ZIP.
 - Downloaded public ZIP matches the SHA-256 above; packaged author, URLs and license checked.
 - Shared repository: the existing Roxyz0501/DalamudPluginRepo.
 - Shared repository entry: published in registration commit
-  `c9c631bb8b5cc9d30e9ad1d0d796daf354d57640`.
+  `3681cb2c021c8ad0a1a216dde4163f2ff817d878`.
 - Registration verified through both public main and commit-pinned raw indexes.
-- Release ZIP: `artifacts/AetherRadio-0.1.4.0.zip`.
+- Release ZIP: `artifacts/AetherRadio-0.1.5.0.zip`.
 - No plugin dependencies; runtime dependencies documented in `release/dependencies.json`.
-- Release source commit: `efd4616097f466be04bbbedd7cf89958487d8130`.
+- Release source commit: `b88776bfe4ad2cf7d7127e3a7680d8ecaf68a2ce`.
 
 On 2026-10-03 the user explicitly requested publication after being informed that
 in-game playback/lock/restore testing was outstanding. Publish as an initial preview
@@ -51,3 +51,10 @@ play creates a fresh engine; persistent playlists/settings are unchanged.
 harness passed. Clean Release build, public repository/icon/ZIP, packaged
 identity/license, SHA-256 and both shared index URLs verified. Native in-game
 logout/relogin and audio restoration remain unverified.
+
+0.1.5.0: the volume session additionally suppresses the local Orchestrion bus
+during playback and restores it on stop/logout/unload. Furniture commands,
+game config and non-music buses are untouched. 55 managed checks and 64 including
+offline game data passed; clean Release build has zero warnings/errors.
+Public repository/icon/ZIP, package metadata/license/hash and both shared index
+URLs verified. Actual in-game orchestrion switching/restoration remains unverified.
