@@ -4,17 +4,22 @@ Updated: 2026-10-08 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
-## 0.1.8.0 publication preparation
+## Current public release: 0.1.8.0
 
-- Seven-language implementation and release preparation complete. The user authorized publication in the coordinating localization chat on 2026-10-08; this was verified from the original user message.
+- Public preview version: 0.1.8.0, published on 2026-10-08 (JST) as a prerelease, not a draft.
+- Source release commit: `1ba32a791ef1b09b647d1acfc41671981cb077df`.
+- Public Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v0.1.8.0
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v0.1.8.0/AetherRadio-0.1.8.0.zip
+- Seven-language implementation and publication complete. The user authorized publication in the coordinating localization chat on 2026-10-08; this was verified from the original user message.
 - Clean Release build: zero warnings/errors. 170 managed checks, 188 including four official game-data languages, and 34 isolated ImGui checks passed.
 - Seven embedded dictionaries (107 keys each), stable UI IDs, saved choice preservation and public SDK language detection are included.
-- Release ZIP SHA-256: `7C0FB5DE7F34A5D6EEA3FB85AC99502CCF3221790C0E81F406D2ED74986FCA70`.
+- Release ZIP SHA-256: `DAEBF342B3926C70A6A72A6A59DBDE33A0E03C9EBF8084B7F6334C776C9C34B2`.
+- Public RepoUrl, IconUrl (image content type) and download URL returned HTTP 200 without authentication. The downloaded public ZIP matches the local hash; packaged version, InternalName, display name, author, URLs and upstream license verified.
 - No credential/personal-path matches in distributable source. Existing MIT metadata notices, original icon and author/URL fields retained. Host SDK assemblies and Windows font files are not bundled.
 - Managed font-atlas integration, IME/DPI and native audio remain unverified inside the running game.
-- Shared repo.json and the workspace publication ledger are owned by the coordinating chat and are not changed here.
+- Shared repo.json and the workspace publication ledger are owned by the coordinating chat and are not changed here. The public shared entry still showed 0.1.7.0 at verification time; registration of 0.1.8.0 is pending there.
 
-## Previously verified public release
+## Previously verified public release: 0.1.7.0
 
 - Public preview version: 0.1.7.0.
 - Dedicated repository: https://github.com/Roxyz0501/AetherRadio
