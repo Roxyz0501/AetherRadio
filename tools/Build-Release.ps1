@@ -37,6 +37,16 @@ try {
     try { $packed = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
     if ($packed.IconUrl -ne $manifest.IconUrl -or $packed.RepoUrl -ne $manifest.RepoUrl) { throw 'Packaged manifest URL mismatch' }
     if (!$zip.GetEntry('licenses/Orchestrion-MIT.txt')) { throw 'Missing upstream license' }
+    $assemblyStream = [IO.MemoryStream]::new()
+    $packedDll = $zip.GetEntry('AetherRadio.dll').Open()
+    try {
+        $packedDll.CopyTo($assemblyStream)
+        $assembly = [Reflection.Assembly]::Load($assemblyStream.ToArray())
+        $resources = $assembly.GetManifestResourceNames()
+        foreach ($code in @('ja','en','de','fr','ko','zh-Hans','zh-Hant')) {
+            if ("AetherRadio.Locales.$code.json" -notin $resources) { throw "Missing packaged locale: $code" }
+        }
+    } finally { $packedDll.Dispose(); $assemblyStream.Dispose() }
     if ($zip.Entries | Where-Object { $_.Name -in @('Dalamud.dll','Lumina.dll','FFXIVClientStructs.dll') }) { throw 'Host binaries must not be packaged' }
 } finally { $zip.Dispose() }
 $hash = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash

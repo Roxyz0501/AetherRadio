@@ -72,6 +72,7 @@ SessionTests.Run(Check);
 OrchestrionTests.Run(Check);
 VolumeBoostTests.Run(Check);
 ConfigurationTests.Run(Check);
+LocalizationTests.Run(Check);
 
 if (args.Length > 0)
 {
@@ -91,6 +92,19 @@ if (args.Length > 0)
     Check(catalogue.Tracks.Values.Where(t => !t.HasKnownTitle).All(t => t.Title.Contains("曲名未登録")), "Unknown titles are identified honestly");
     var other = catalogue.Tracks.Values.Count(x => x.Locations.All(l => l.Category == "その他"));
     Console.WriteLine($"CATALOG: {catalogue.Tracks.Count} tracks, {named} named, {other} other, {catalogue.MissingFiles} missing files");
+    foreach (var language in new[] { Language.English, Language.German, Language.French })
+    {
+        using var localizedGame = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = language, CacheFileResources = false });
+        var localizedCatalog = new Catalog(new OfflineData(localizedGame), (e, label) => Console.WriteLine($"WARNING {label}: {e.Message}"));
+        localizedCatalog.Load();
+        Check(localizedCatalog.Tracks.Count == expected && localizedCatalog.Warnings.Count == 0, $"All tracks load with official {language} game data");
+        // Inferred title matches may differ across official locales; direct associations must match.
+        var direct = catalogue.Tracks.Values.SelectMany(t => t.Locations.Where(l => !l.Inferred && l.ExpansionId != uint.MaxValue).Select(l => $"{t.Id}:{l.ExpansionId}:{l.Category}")).Distinct().Order();
+        var translated = localizedCatalog.Tracks.Values.SelectMany(t => t.Locations.Where(l => !l.Inferred && l.ExpansionId != uint.MaxValue).Select(l => $"{t.Id}:{l.ExpansionId}:{l.Category}")).Distinct().Order();
+        Check(direct.SequenceEqual(translated), $"Duty classification is independent of {language} display names");
+        var officialExpansion = localizedGame.GetExcelSheet<ExVersion>()!.GetRow(1).Name.ToString();
+        Check(localizedCatalog.Tracks.Values.SelectMany(t => t.Locations).Any(l => l.ExpansionId == 1 && l.Expansion == officialExpansion), $"Official {language} expansion names are retained");
+    }
     foreach (var exp in catalogue.Tracks.Values.SelectMany(t => t.Locations.Select(l => (t.Id, l.ExpansionId, l.Expansion))).Distinct().GroupBy(x => (x.ExpansionId, x.Expansion)).OrderBy(x => x.Key.ExpansionId))
         Console.WriteLine($"  {exp.Key.Expansion}: {exp.Count()}");
 }

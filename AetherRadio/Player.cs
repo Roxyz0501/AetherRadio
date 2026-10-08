@@ -15,7 +15,9 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     public Track? Current { get; private set; }
     public bool IsPlaying => engine?.Current != null;
     public bool Available => engine != null || engineFactory != null;
-    public string? Error { get; set; }
+    private readonly Localization text = new(() => config.Language);
+    private string? errorKey;
+    public string? Error { get => errorKey == null ? null : text[errorKey]; set => errorKey = value; }
     public double Elapsed => clock.Elapsed.TotalSeconds;
     public int AdvanceSeconds => config.UseTrackDuration ? Current?.DurationSeconds ?? config.TrackSeconds : config.TrackSeconds;
 
@@ -32,8 +34,8 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
         {
             // Create on demand, including after logout or a failed initialization.
             engine ??= engineFactory?.Invoke();
-            if (engine == null) throw new InvalidOperationException("BGM APIが利用できません。");
-            if (!catalog.Tracks.TryGetValue(id, out var track)) throw new InvalidOperationException("この曲は現在のゲームデータに存在しません。");
+            if (engine == null) throw new PlaybackException("ApiUnavailable");
+            if (!catalog.Tracks.TryGetValue(id, out var track)) throw new PlaybackException("TrackUnavailable");
             engine.Locked = config.LockBgm;
             engine.VolumePercent = config.VolumePercent;
             engine.Play(id);
@@ -43,7 +45,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
         }
         catch (Exception e)
         {
-            Error = e.Message;
+            Error = e is PlaybackException known ? known.Key : "PlaybackError";
             log.Error(e, "BGM playback failed");
             Stop();
         }
@@ -60,12 +62,12 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
         SynchronizeSession();
         clock.Stop();
         try { engine?.Stop(); }
-        catch (Exception e) { Error = e.Message; log.Error(e, "Restoring game BGM failed"); }
+        catch (Exception e) { Error = "RestoreError"; log.Error(e, "Restoring game BGM failed"); }
     }
     public void Update()
     {
         try { UpdatePlayback(); }
-        catch (Exception e) { Error = e.Message; log.Error(e, "BGM update failed"); Stop(); }
+        catch (Exception e) { Error = e is PlaybackException known ? known.Key : "PlaybackError"; log.Error(e, "BGM update failed"); Stop(); }
     }
     private void UpdatePlayback()
     {
@@ -106,7 +108,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     {
         SynchronizeSession();
         if (sessionActive && client.IsLoggedIn) return true;
-        Error = "ログイン後に再生できます。";
+        Error = "LoginRequired";
         return false;
     }
 

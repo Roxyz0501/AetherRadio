@@ -1,6 +1,19 @@
-# Validation — 2026-10-04
+# Validation — 2026-10-08
 
-Version: 0.1.7.0 (public preview). Author: Roxyz0501.
+Version: 0.1.8.0 (public preview). Author: Roxyz0501.
+
+## 0.1.8.0 localization
+
+- Seven complete embedded dictionaries, 107 keys each: ja, en, de, fr, ko, zh-Hans, zh-Hant. Tests reject missing/empty values and mismatched composite-format placeholders; all format strings are exercised. Missing runtime lookups fall back to English, then a diagnostic key.
+- Public APIs verified against the installed API 15 SDK/XML and a successful build: `IClientState.ClientLanguage`, `Dalamud.Utility.ClientLanguageExtensions.ToCode()` and `IDalamudPluginInterface.UiLanguage`. Game language has priority. No supported public launcher-language integration was found; no private launcher files, internal settings reflection or OS language detection is used.
+- Nullable `Configuration.Language` distinguishes unset from English. Concrete normalized values are saved once; saved choices short-circuit source reads. Tests cover all seven values, regional codes, explicit Chinese scripts, ambiguous zh, unknown values, exceptions, Auto/invalid settings, existing Japanese/English choices, restart/session changes, and preservation of playlists/favorites/volume/repeat enums.
+- All UI-owned text, current error messages, command help, tooltips, generated unknown titles and Support content use the selected language. ImGui labels use stable IDs; changing language does not recreate the UI or catalogue. Configuration opens directly on the Settings tab.
+- Font setup uses public `IUiBuilder.CreateFontAtlas`, `IFontAtlas.NewDelegateFontHandle`, `AddDalamudDefaultFont`, `AttachWindowsDefaultFont` and `IFontHandle.Push`. A single plugin-owned atlas merges the translation character ranges from Windows fonts, checks missing glyphs after building and is disposed on unload. No fonts are redistributed and switching languages does not rebuild the atlas.
+- Official game names remain in the client data language. Exact-path Orchestrion names take priority when available; other titles keep the attributed Japanese supplementary metadata. No synthetic Korean/Chinese game-name translations. Genre classification uses the official Japanese ContentType sheet for stable keys on all game clients, then translates the UI label.
+- 170 managed checks passed; 188 with Japanese/English/German/French offline game data. The catalogue retains all 1,293 installed BGM entries. Direct duty associations are identical across the four data languages.
+- 34 isolated ImGui checks passed: every translation character and native selector name has a glyph using the installed Windows fonts; all seven actual combo selections immediately save; search and pending playlist input survive; command help updates; mini repeat/volume/drag still operate. Actual library/settings/Support/mini draws were inspected, including German/French wrapping and Korean/Chinese text. Support links were not opened by tests.
+- Clean Release build passed with zero warnings/errors after refreshing a cached NuGet audit connection failure. Release ZIP validation passed via `tools/Build-Release.ps1`, including manifest author/URLs, seven embedded resources, upstream notices, and no host SDK assemblies.
+- Still unverified in the running game: Dalamud-managed font atlas integration, optional-font behavior on other Windows installations, IME/DPI/gamepad behavior, and native audio playback/restore/loop acceptance. Unit font coverage and software-rendered previews do not establish those live results.
 
 ## 0.1.7.0 default repeat mode
 

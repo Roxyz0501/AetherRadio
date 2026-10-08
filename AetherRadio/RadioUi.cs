@@ -8,6 +8,11 @@ namespace AetherRadio;
 
 public sealed class RadioUi(Configuration config, Catalog catalog, Player player, Action save)
 {
+    private readonly Localization text = new(() => config.Language);
+    public Action? LanguageChanged { get; set; }
+    public Func<bool>? FontFailed { get; set; }
+    private bool revealSettings;
+    public void OpenSettings() { Open(); revealSettings = true; }
     private static readonly Vector4 Accent = new(0.60f, 0.81f, 1f, 1);
     private static readonly Vector4 Muted = new(0.64f, 0.69f, 0.71f, 1);
     private bool open;
@@ -81,27 +86,27 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (ImGui.Begin("BGMPlayer###AetherRadio.Main", ref open, ImGuiWindowFlags.NoCollapse))
         {
             ImGui.TextColored(Accent, "BGMPlayer");
-            ImGui.SameLine(); ImGui.TextColored(Muted, "BGMプレイヤー");
+            ImGui.SameLine(); ImGui.TextColored(Muted, text["Subtitle"]);
             ImGui.Separator();
             if (ImGui.BeginTabBar("tabs"))
             {
-                if (ImGui.BeginTabItem("ライブラリ")) { DrawLibrary(); ImGui.EndTabItem(); }
-                if (ImGui.BeginTabItem("設定")) { DrawSettings(); ImGui.EndTabItem(); }
+                if (ImGui.BeginTabItem(text.Label("Library"))) { DrawLibrary(); ImGui.EndTabItem(); }
+                if (ImGui.BeginTabItem(text.Label("Settings"), revealSettings ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None)) { revealSettings = false; DrawSettings(); ImGui.EndTabItem(); }
                 ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.81f, 0.38f, 1));
                 ImGui.PushStyleColor(ImGuiCol.Tab, new Vector4(0.27f, 0.17f, 0.06f, 1));
                 ImGui.PushStyleColor(ImGuiCol.TabHovered, new Vector4(0.43f, 0.28f, 0.09f, 1));
                 ImGui.PushStyleColor(ImGuiCol.TabActive, new Vector4(0.35f, 0.22f, 0.06f, 1));
-                var support = ImGui.BeginTabItem("支援");
+                var support = ImGui.BeginTabItem(text.Label("Support"));
                 ImGui.PopStyleColor(4);
                 if (support)
                 {
-                    ImGui.Spacing(); ImGui.TextColored(Accent, "BGMPlayer by Roxyz0501");
-                    ImGui.TextWrapped("Ko-fiから開発を支援できます（任意）。");
-                    ImGui.Spacing(); ImGui.TextUnformatted("支援先: Roxyz0501");
-                    if (ImGui.Button("Ko-fiで支援する"))
+                    ImGui.Spacing(); ImGui.TextColored(Accent, "BGMPlayer · Roxyz0501");
+                    ImGui.TextWrapped(text["SupportInfo"]);
+                    ImGui.Spacing(); ImGui.TextUnformatted(text["SupportRecipient"]);
+                    if (ImGui.Button(text.Label("SupportButton")))
                     {
                         try { Process.Start(new ProcessStartInfo("https://ko-fi.com/roxyz0501") { UseShellExecute = true }); }
-                        catch { player.Error = "ブラウザーを開けませんでした: https://ko-fi.com/roxyz0501"; }
+                        catch { player.Error = "BrowserError"; }
                     }
                     ImGui.TextColored(Muted, "https://ko-fi.com/roxyz0501");
                     ImGui.EndTabItem();
@@ -116,32 +121,32 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     {
         if (!CatalogReady)
         {
-            ImGui.TextWrapped(player.Error ?? "ゲーム内の曲一覧を読み込んでいます…");
+            ImGui.TextWrapped(player.Error ?? text["Loading"]);
             return;
         }
         DrawFilters();
-        ImGui.TextColored(Muted, "曲名・コンテンツ名・BGM IDで検索");
+        ImGui.TextColored(Muted, text["SearchHint"]);
         ImGui.SetNextItemWidth(-1);
         if (TextInput("##search", ref search, 256)) resetScroll = true;
         var height = Math.Max(180, ImGui.GetContentRegionAvail().Y - 145);
-        if (ImGui.BeginChild("nav", new Vector2(185, height), true))
+        if (ImGui.BeginChild("nav", new Vector2(Math.Min(230, Math.Max(185, ImGui.GetWindowWidth() * 0.24f)), height), true))
         {
-            ImGui.TextColored(Muted, "ライブラリ");
-            Nav("すべての曲", 0);
-            Nav("お気に入り", 1);
+            ImGui.TextColored(Muted, text["Library"]);
+            Nav(text["AllTracks"], 0);
+            Nav(text["Favorites"], 1);
             ImGui.Separator();
-            ImGui.TextColored(Muted, "マイリスト");
+            ImGui.TextColored(Muted, text["Playlists"]);
             foreach (var list in config.Playlists)
             {
-                if (ImGui.Selectable($"{list.Name}##{list.Id}", library == 2 && playlist == list.Id))
+                if (ImGui.Selectable($"{list.Name}###{list.Id}", library == 2 && playlist == list.Id))
                 { library = 2; playlist = list.Id; rename = list.Name; resetScroll = true; }
             }
             ImGui.SetNextItemWidth(-1);
-            ImGui.TextColored(Muted, "新しいリスト名");
+            ImGui.TextColored(Muted, text["NewListName"]);
             ImGui.SetNextItemWidth(-1);
             TextInput("##newlist", ref newList, 64);
             ImGui.BeginDisabled(string.IsNullOrWhiteSpace(newList));
-            if (ImGui.Button("＋ 作成", new Vector2(-1, 0)))
+            if (ImGui.Button(text.Label("Create"), new Vector2(-1, 0)))
             {
                 var list = new Playlist { Name = newList.Trim() };
                 config.Playlists.Add(list); library = 2; playlist = list.Id; rename = list.Name; newList = ""; Changed();
@@ -155,11 +160,11 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             var list = config.Playlists.FirstOrDefault(x => x.Id == playlist);
             if (library == 2 && list != null) DrawListEditor(list);
             RefreshVisible(list);
-            ImGui.TextColored(Muted, $"{visible.Count:N0} 曲");
+            ImGui.TextColored(Muted, text.Format("TrackCount", visible.Count));
             ImGui.SameLine(); ImGui.BeginDisabled(visible.Count == 0 || !player.Available);
-            if (ImGui.SmallButton("この一覧を再生")) player.Start(visible[0], visible.Select(t => t.Id));
+            if (ImGui.SmallButton(text.Label("PlayList"))) player.Start(visible[0], visible.Select(t => t.Id));
             ImGui.SameLine();
-            if (ImGui.SmallButton("ランダム再生"))
+            if (ImGui.SmallButton(text.Label("Shuffle")))
             {
                 config.Shuffle = true; player.Queue.Shuffle = true; Changed();
                 player.Start(visible[Random.Shared.Next(visible.Count)], visible.Select(t => t.Id));
@@ -167,7 +172,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             ImGui.EndDisabled();
             if (ImGui.BeginChild("song-scroll", new Vector2(0, 0), false))
             {
-                if (visible.Count == 0) ImGui.TextWrapped("該当する曲がありません。検索条件を変えるか、曲の「＋」からマイリストに追加してください。");
+                if (visible.Count == 0) ImGui.TextWrapped(text["NoTracks"]);
                 if (resetScroll) { ImGui.SetScrollY(0); resetScroll = false; }
                 DrawTrackList(list);
             }
@@ -175,42 +180,42 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         }
         ImGui.EndChild();
         ImGui.Separator();
-        NowPlaying(false);
+        NowPlaying();
     }
 
     private void Nav(string label, int mode)
     {
-        if (ImGui.Selectable(label, library == mode)) { library = mode; resetScroll = true; }
+        if (ImGui.Selectable($"{label}###nav-{mode}", library == mode)) { library = mode; resetScroll = true; }
     }
     private void DrawFilters()
     {
         var locations = allLocations ??= catalog.Tracks.Values.SelectMany(t => t.Locations).Distinct().ToArray();
         if (ImGui.BeginTabBar("expansions", ImGuiTabBarFlags.FittingPolicyScroll))
         {
-            ExpansionTab("すべて", null);
+            ExpansionTab(text["All"], null);
             foreach (var group in locations.GroupBy(x => x.ExpansionId).OrderBy(x => x.Key))
-                ExpansionTab(group.First().Expansion, group.Key);
+                ExpansionTab(text.Expansion(group.First()), group.Key);
             ImGui.EndTabBar();
         }
         var scoped = locations.Where(x => expansion == null || x.ExpansionId == expansion).ToArray();
         if (ImGui.BeginTabBar("genres", ImGuiTabBarFlags.FittingPolicyScroll))
         {
-            GenreTab("すべて", null);
-            foreach (var name in scoped.Select(x => x.Category).Distinct().OrderBy(GenreOrder).ThenBy(x => x)) GenreTab(name, name);
+            GenreTab(text["All"], null);
+            foreach (var name in scoped.Select(x => x.Category).Distinct().OrderBy(GenreOrder).ThenBy(x => x)) GenreTab(text.Genre(name), name);
             ImGui.EndTabBar();
         }
         ImGui.SetNextItemWidth(-1);
-        if (ImGui.BeginCombo("##area", area ?? "すべてのコンテンツ／フィールド"))
+        if (ImGui.BeginCombo("##area", area == null ? text["AllAreas"] : area == "未分類のBGM" ? text["Unclassified"] : area))
         {
-            if (ImGui.Selectable("すべて", area == null)) { area = null; resetScroll = true; }
+            if (ImGui.Selectable(text["All"] + "###all-areas", area == null)) { area = null; resetScroll = true; }
             foreach (var name in scoped.Where(x => genre == null || x.Category == genre).Select(x => x.Name).Distinct().OrderBy(x => x))
-                if (ImGui.Selectable(name, area == name)) { area = name; resetScroll = true; }
+                if (ImGui.Selectable((name == "未分類のBGM" ? text["Unclassified"] : name) + "###area-" + name, area == name)) { area = name; resetScroll = true; }
             ImGui.EndCombo();
         }
     }
     private void ExpansionTab(string label, uint? id)
     {
-        if (!ImGui.BeginTabItem(label)) return;
+        if (!ImGui.BeginTabItem($"{label}###expansion-{id}")) return;
         if (expansion != id) { expansion = id; genre = null; area = null; resetScroll = true; }
         ImGui.EndTabItem();
     }
@@ -218,7 +223,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     {
         // Separate tab state for each expansion avoids retaining a hidden genre.
         ImGui.PushID(expansion?.ToString() ?? "all");
-        if (ImGui.BeginTabItem(label))
+        if (ImGui.BeginTabItem($"{label}###genre-{value}"))
         {
             if (genre != value) { genre = value; area = null; resetScroll = true; }
             ImGui.EndTabItem();
@@ -240,7 +245,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     }
     private void RefreshVisible(Playlist? list)
     {
-        var key = $"{search}|{expansion}|{genre}|{area}|{library}|{playlist}|{revision}";
+        var key = $"{search}|{expansion}|{genre}|{area}|{library}|{playlist}|{revision}|{text.Language}";
         if (cacheKey == key) return;
         cacheKey = key;
         IEnumerable<Track> source = library switch
@@ -249,7 +254,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             2 => (list?.Tracks ?? []).Where(catalog.Tracks.ContainsKey).Select(id => catalog.Tracks[id]),
             _ => catalog.Tracks.Values.OrderBy(t => t.Title),
         };
-        visible = source.Where(t => (string.IsNullOrWhiteSpace(search) || t.SearchText.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)) &&
+        visible = source.Where(t => (string.IsNullOrWhiteSpace(search) || (t.SearchText.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase) || text.Title(t).Contains(search.Trim(), StringComparison.OrdinalIgnoreCase) || t.Locations.Any(l => text.Genre(l.Category).Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)))) &&
             t.Locations.Any(l => (expansion == null || l.ExpansionId == expansion) && (genre == null || l.Category == genre) && (area == null || l.Name == area))).ToList();
     }
     private void DrawTrack(Track track, Playlist? list)
@@ -259,27 +264,28 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         { if (!config.Favorites.Add(track.Id)) config.Favorites.Remove(track.Id); Changed(); }
         ImGui.SameLine();
         if (ImGui.SmallButton("＋")) ImGui.OpenPopup("add");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(text["AddToPlaylist"]);
         if (ImGui.BeginPopup("add"))
         {
-            ImGui.TextUnformatted("マイリストへ追加");
-            if (config.Playlists.Count == 0) ImGui.TextUnformatted("左側でマイリストを作成してください。");
+            ImGui.TextUnformatted(text["AddToPlaylist"]);
+            if (config.Playlists.Count == 0) ImGui.TextUnformatted(text["CreatePlaylistFirst"]);
             foreach (var target in config.Playlists)
             {
                 ImGui.BeginDisabled(target.Tracks.Contains(track.Id));
-                if (ImGui.Selectable($"{target.Name}##{target.Id}")) { target.Tracks.Add(track.Id); Changed(); }
+                if (ImGui.Selectable($"{target.Name}###{target.Id}")) { target.Tracks.Add(track.Id); Changed(); }
                 ImGui.EndDisabled();
             }
             ImGui.EndPopup();
         }
         ImGui.SameLine();
         ImGui.BeginDisabled(!player.Available);
-        if (ImGui.Selectable($"{track.Title}##play", player.IsPlaying && player.Current?.Id == track.Id, ImGuiSelectableFlags.None, new Vector2(Math.Max(60, ImGui.GetContentRegionAvail().X - (library == 2 ? 112 : 5)), 0)))
+        if (ImGui.Selectable($"{text.Title(track)}###play", player.IsPlaying && player.Current?.Id == track.Id, ImGuiSelectableFlags.None, new Vector2(Math.Max(60, ImGui.GetContentRegionAvail().X - (library == 2 ? 112 : 5)), 0)))
             player.Start(track, visible.Select(t => t.Id));
         ImGui.EndDisabled();
         if (ImGui.IsItemHovered())
         {
-            ImGui.BeginTooltip(); ImGui.TextUnformatted(track.Title); ImGui.TextUnformatted($"BGM ID: {track.Id}");
-            foreach (var l in track.Locations) ImGui.TextUnformatted($"{l.Expansion} / {l.Category} / {l.Name}{(l.Inferred ? "（曲名・場所から補助分類）" : "")}");
+            ImGui.BeginTooltip(); ImGui.TextUnformatted(text.Title(track)); ImGui.TextUnformatted($"BGM ID: {track.Id}");
+            foreach (var l in track.Locations) ImGui.TextUnformatted($"{text.Expansion(l)} / {text.Genre(l.Category)} / {text.Area(l)}{(l.Inferred ? text["Inferred"] : "")}");
             ImGui.TextColored(Muted, track.Path); ImGui.EndTooltip();
         }
         if (library == 2 && list != null)
@@ -287,34 +293,37 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             var index = list.Tracks.IndexOf(track.Id);
             ImGui.SameLine();
             if (ImGui.SmallButton("↑") && index > 0) { (list.Tracks[index - 1], list.Tracks[index]) = (list.Tracks[index], list.Tracks[index - 1]); Changed(); }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(text["MoveUp"]);
             ImGui.SameLine();
             if (ImGui.SmallButton("↓") && index < list.Tracks.Count - 1) { (list.Tracks[index + 1], list.Tracks[index]) = (list.Tracks[index], list.Tracks[index + 1]); Changed(); }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(text["MoveDown"]);
             ImGui.SameLine(); if (ImGui.SmallButton("×")) { list.Tracks.Remove(track.Id); Changed(); }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(text["RemoveTrack"]);
         }
         ImGui.PopID();
     }
     private void DrawListEditor(Playlist list)
     {
-        ImGui.SetNextItemWidth(180); TextInput("##rename", ref rename, 64);
-        ImGui.SameLine(); ImGui.BeginDisabled(string.IsNullOrWhiteSpace(rename));
-        if (ImGui.SmallButton("名前変更")) { list.Name = rename.Trim(); Changed(); }
+        ImGui.SetNextItemWidth(-1); TextInput("##rename", ref rename, 64);
+        ImGui.BeginDisabled(string.IsNullOrWhiteSpace(rename));
+        if (ImGui.SmallButton(text.Label("Rename"))) { list.Name = rename.Trim(); Changed(); }
         ImGui.EndDisabled(); ImGui.SameLine();
-        if (ImGui.SmallButton("リスト削除")) ImGui.OpenPopup("delete-list");
+        if (ImGui.SmallButton(text.Label("DeleteList"))) ImGui.OpenPopup("delete-list");
         if (ImGui.BeginPopup("delete-list"))
         {
-            ImGui.TextUnformatted($"「{list.Name}」を削除しますか？");
-            if (ImGui.Button("削除する")) { config.Playlists.Remove(list); library = 0; playlist = null; Changed(); ImGui.CloseCurrentPopup(); }
-            ImGui.SameLine(); if (ImGui.Button("キャンセル")) ImGui.CloseCurrentPopup();
+            ImGui.TextWrapped(text.Format("DeletePrompt", list.Name));
+            if (ImGui.Button(text.Label("Delete"))) { config.Playlists.Remove(list); library = 0; playlist = null; Changed(); ImGui.CloseCurrentPopup(); }
+            ImGui.SameLine(); if (ImGui.Button(text.Label("Cancel"))) ImGui.CloseCurrentPopup();
             ImGui.EndPopup();
         }
         var missing = list.Tracks.Count(id => !catalog.Tracks.ContainsKey(id));
-        if (missing > 0) ImGui.TextWrapped($"現在のゲームデータにない曲 {missing} 件は保持しています。");
+        if (missing > 0) ImGui.TextWrapped(text.Format("MissingTracks", missing));
     }
 
     private void DrawMini()
     {
         var viewport = ImGui.GetMainViewport();
-        var size = new Vector2(420, 218);
+        var size = new Vector2(420, Math.Max(218, ImGui.GetTextLineHeightWithSpacing() * 9.5f));
         if (config.Corner != 0)
         {
             var right = config.Corner is 2 or 4;
@@ -330,9 +339,10 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (ImGui.Begin("##AetherRadio.Mini", flags))
         {
             var header = ImGui.GetCursorScreenPos();
-            ImGui.InvisibleButton("##move-mini", new Vector2(Math.Max(80, ImGui.GetContentRegionAvail().X - 140), 22));
+            var buttonsWidth = ImGui.CalcTextSize(config.PinMini ? text["Unpin"] : text["Pin"]).X + ImGui.CalcTextSize(text["Open"]).X + ImGui.CalcTextSize("×").X + ImGui.GetStyle().FramePadding.X * 6 + ImGui.GetStyle().ItemSpacing.X * 3;
+            ImGui.InvisibleButton("##move-mini", new Vector2(Math.Max(80, ImGui.GetContentRegionAvail().X - buttonsWidth), 22));
             ImGui.GetWindowDrawList().AddText(header + new Vector2(0, 3), ImGui.ColorConvertFloat4ToU32(Accent), "BGMPlayer");
-            if (ImGui.IsItemHovered()) ImGui.SetTooltip(config.PinMini ? "位置を固定しています。「解除」で移動できます。" : "ここをドラッグして移動");
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(config.PinMini ? text["PinnedHint"] : text["DragHint"]);
             if (!config.PinMini && ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
             {
                 var delta = ImGui.GetIO().MouseDelta;
@@ -346,11 +356,12 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             }
             if (miniDragged && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { miniDragged = false; Changed(); }
             ImGui.SameLine();
-            if (ImGui.SmallButton(config.PinMini ? "解除" : "固定")) { config.PinMini = !config.PinMini; Changed(); }
+            if (ImGui.SmallButton((config.PinMini ? text["Unpin"] : text["Pin"]) + "###mini-pin")) { config.PinMini = !config.PinMini; Changed(); }
             ImGui.SameLine();
-            if (ImGui.SmallButton("開く")) Open();
+            if (ImGui.SmallButton(text.Label("Open"))) Open();
             ImGui.SameLine();
             if (ImGui.SmallButton("×")) { config.ShowMini = false; Changed(); }
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(text["HideMini"]);
             DrawMiniPlayback();
         }
         ImGui.End();
@@ -366,11 +377,11 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         draw.AddCircleFilled(origin + new Vector2(24), 1.5f, tile);
         ImGui.Dummy(new Vector2(48)); ImGui.SameLine();
         ImGui.BeginGroup();
-        var title = player.Current?.Title ?? "曲を選んでください";
+        var title = player.Current is { } current ? text.Title(current) : text["ChooseTrack"];
         if (ImGui.BeginChild("mini-title", new Vector2(ImGui.GetContentRegionAvail().X, 24), false, ImGuiWindowFlags.NoScrollbar)) ImGui.TextUnformatted(title);
         ImGui.EndChild();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(title);
-        ImGui.TextColored(Muted, player.Current?.Locations.FirstOrDefault()?.Expansion ?? "BGMPlayer");
+        ImGui.TextColored(Muted, player.Current?.Locations.FirstOrDefault() is { } location ? text.Expansion(location) : "BGMPlayer");
         ImGui.EndGroup();
         ImGui.Spacing();
         var timeline = ImGui.GetCursorScreenPos();
@@ -381,20 +392,22 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             draw.AddLine(timeline, timeline + new Vector2(width * Math.Clamp((float)player.Elapsed / player.AdvanceSeconds, 0, 1), 0), ImGui.ColorConvertFloat4ToU32(Accent), 3);
         ImGui.Dummy(new Vector2(width, 2));
         ImGui.BeginDisabled(!CatalogReady || !player.Available);
-        if (TransportButton("shuffle", "ランダム再生", config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
-        ImGui.SameLine(); if (TransportButton("previous", "前の曲")) player.Previous();
-        ImGui.SameLine(); if (TransportButton(player.IsPlaying ? "stop" : "play", player.IsPlaying ? "停止してゲームBGMへ戻す" : "再生", true)) { if (player.IsPlaying) player.Stop(); else player.Resume(); }
-        ImGui.SameLine(); if (TransportButton("next", "次の曲")) player.Next();
+        if (TransportButton("shuffle", text["Shuffle"], config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
+        ImGui.SameLine(); if (TransportButton("previous", text["Previous"])) player.Previous();
+        ImGui.SameLine(); if (TransportButton(player.IsPlaying ? "stop" : "play", player.IsPlaying ? text["StopTooltip"] : text["Play"], true)) { if (player.IsPlaying) player.Stop(); else player.Resume(); }
+        ImGui.SameLine(); if (TransportButton("next", text["Next"])) player.Next();
         ImGui.EndDisabled();
         ImGui.SameLine(); DrawRepeatButton();
         ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 157);
         DrawVolume("##mini-volume", 135);
-        ImGui.TextColored(Muted, player.Error != null ? "「開く」で再生状況を確認" : !player.IsPlaying ? "停止中" : config.Repeat == RepeatMode.One ? "1曲ループ" : config.AutoAdvance ? $"約{Math.Max(0, player.AdvanceSeconds - (int)player.Elapsed)}秒で次の曲" : config.LockBgm ? "BGM固定中" : "再生中");
+        ImGui.PushTextWrapPos(0);
+        ImGui.TextColored(Muted, player.Error != null ? text["CheckStatus"] : !player.IsPlaying ? text["Stopped"] : config.Repeat == RepeatMode.One ? text["RepeatOne"] : config.AutoAdvance ? text.Format("NextIn", Math.Max(0, player.AdvanceSeconds - (int)player.Elapsed)) : config.LockBgm ? text["BgmLocked"] : text["Playing"]);
+        ImGui.PopTextWrapPos();
     }
     private void DrawRepeatButton()
     {
-        var label = config.Repeat switch { RepeatMode.One => "1曲ループ", RepeatMode.All => "リストをループ", _ => "ループなし" };
-        if (TransportButton("repeat", label + "（クリックで切り替え）", config.Repeat != RepeatMode.Off, config.Repeat == RepeatMode.One))
+        var label = config.Repeat switch { RepeatMode.One => text["RepeatOne"], RepeatMode.All => text["RepeatAll"], _ => text["RepeatOff"] };
+        if (TransportButton("repeat", text.Format("RepeatHint", label), config.Repeat != RepeatMode.Off, config.Repeat == RepeatMode.One))
         {
             config.Repeat = config.Repeat switch { RepeatMode.All => RepeatMode.One, RepeatMode.One => RepeatMode.Off, _ => RepeatMode.All };
             player.Queue.Repeat = config.Repeat;
@@ -444,64 +457,73 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
         return clicked;
     }
-    private void NowPlaying(bool mini)
+    private void NowPlaying()
     {
-        ImGui.TextColored(Muted, player.IsPlaying ? "再生中" : "停止中");
-        var title = player.Current?.Title ?? "曲が選択されていません";
+        ImGui.TextColored(Muted, player.IsPlaying ? text["Playing"] : text["Stopped"]);
+        var title = player.Current is { } current ? text.Title(current) : text["NoSelection"];
         // A clipped single-line title keeps long localized names inside the mini player.
         if (ImGui.BeginChild("title", new Vector2(0, ImGui.GetTextLineHeight() + 2), false, ImGuiWindowFlags.NoScrollbar)) ImGui.TextUnformatted(title);
         ImGui.EndChild();
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(title);
         ImGui.BeginDisabled(!CatalogReady || !player.Available);
-        if (TransportButton("previous", "前の曲")) player.Previous();
+        if (TransportButton("previous", text["Previous"])) player.Previous();
         ImGui.SameLine();
-        if (TransportButton(player.IsPlaying ? "stop" : "play", player.IsPlaying ? "停止してゲームBGMへ戻す" : "再生", true)) { if (player.IsPlaying) player.Stop(); else player.Resume(); }
-        ImGui.SameLine(); if (TransportButton("next", "次の曲")) player.Next();
+        if (TransportButton(player.IsPlaying ? "stop" : "play", player.IsPlaying ? text["StopTooltip"] : text["Play"], true)) { if (player.IsPlaying) player.Stop(); else player.Resume(); }
+        ImGui.SameLine(); if (TransportButton("next", text["Next"])) player.Next();
         ImGui.SameLine();
-        if (TransportButton("shuffle", "ランダム再生", config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
+        if (TransportButton("shuffle", text["Shuffle"], config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
         ImGui.EndDisabled();
         ImGui.SameLine(); DrawRepeatButton();
         ImGui.SameLine(); ImGui.SetCursorPosX(250);
-        DrawVolume("プレイヤー音量", mini ? 170 : 220);
-        if (mini)
-        {
-            if (player.Error != null) { ImGui.TextColored(new Vector4(1, 0.66f, 0.45f, 1), "再生状況を確認するには「開く」"); }
-            else ImGui.TextColored(Muted, config.Repeat == RepeatMode.One ? "1曲リピート" : $"{(config.LockBgm ? "BGM固定" : "ゲーム優先")}  ·  {(config.AutoAdvance ? Math.Max(0, player.AdvanceSeconds - (int)player.Elapsed) + "秒で次の曲（目安）" : "手動で曲送り")}");
-        }
-        else if (player.Error != null) ImGui.TextWrapped(player.Error);
+        DrawVolume(text.Label("Volume"), 220);
+        if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
+
     private void DrawSettings()
     {
-        ImGui.Spacing(); ImGui.TextColored(Accent, "再生");
-        ImGui.TextWrapped("100%が通常のBGM音量です。小さく感じる場合は200%まで上げられます。ゲームの音量設定やSEは変更しません。ゲーム側の音量上限に達すると、それ以上は大きくなりません。");
+        ImGui.TextUnformatted("言語 / Language");
+        var language = Array.IndexOf(Languages.Codes, text.Language);
+        ImGui.SetNextItemWidth(-1);
+        if (ImGui.Combo("##language", ref language, string.Join('\0', Languages.Names) + "\0"))
+        {
+            config.Language = Languages.Codes[language]; Changed(); LanguageChanged?.Invoke();
+        }
+        if (FontFailed?.Invoke() == true) ImGui.TextWrapped(text["FontError"]);
+        ImGui.TextWrapped(text["GameDataLanguage"]);
+        ImGui.Spacing(); ImGui.TextColored(Accent, text["Playback"]);
+        ImGui.TextWrapped(text["VolumeInfo"]);
         var locked = config.LockBgm;
-        if (ImGui.Checkbox("再生中はコンテンツ・戦闘・フィールドのBGM変更を無視", ref locked)) { config.LockBgm = locked; Changed(); }
-        ImGui.TextWrapped("オフの場合、ゲームから次のBGM変更要求が来た時点で通常のBGMへ戻ります。停止・ログアウト・プラグイン終了時にも固定を解除します。");
+        if (ImGui.Checkbox(text.Label("LockBgm"), ref locked)) { config.LockBgm = locked; Changed(); }
+        ImGui.TextWrapped(text["LockInfo"]);
         var repeat = (int)config.Repeat;
-        if (ImGui.Combo("リピート", ref repeat, "オフ\0リスト全体\01曲\0")) { config.Repeat = (RepeatMode)repeat; player.Queue.Repeat = config.Repeat; Changed(); }
+        ImGui.TextUnformatted(text["Repeat"]); ImGui.SetNextItemWidth(-1);
+        if (ImGui.Combo("##repeat-setting", ref repeat, string.Join('\0', new[] { text["RepeatOff"], text["RepeatAll"], text["RepeatOne"] }) + "\0")) { config.Repeat = (RepeatMode)repeat; player.Queue.Repeat = config.Repeat; Changed(); }
         var advance = config.AutoAdvance;
-        if (ImGui.Checkbox("自動で次の曲へ", ref advance)) { config.AutoAdvance = advance; Changed(); }
+        if (ImGui.Checkbox(text.Label("AutoAdvance"), ref advance)) { config.AutoAdvance = advance; Changed(); }
         var seconds = config.TrackSeconds;
         var useDuration = config.UseTrackDuration;
-        if (ImGui.Checkbox("曲名データの収録時間を曲送りの目安に使う", ref useDuration)) { config.UseTrackDuration = useDuration; Changed(); }
-        if (ImGui.SliderInt("曲送り間隔（秒）", ref seconds, 15, 1800)) { config.TrackSeconds = seconds; Changed(); }
-        ImGui.TextWrapped("自動曲送りは収録時間の目安（不明な曲は指定秒数）で切り替えます。曲の終了検知ではありません。1曲リピートではゲーム本来の再生・ループを維持します。");
-        ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Accent, "ミニプレイヤー");
-        var show = config.ShowMini; if (ImGui.Checkbox("ミニプレイヤーを表示", ref show)) { config.ShowMini = show; Changed(); }
+        if (ImGui.Checkbox(text.Label("UseDuration"), ref useDuration)) { config.UseTrackDuration = useDuration; Changed(); }
+        ImGui.TextUnformatted(text["AdvanceSeconds"]); ImGui.SetNextItemWidth(-1);
+        if (ImGui.SliderInt("##advance-seconds", ref seconds, 15, 1800)) { config.TrackSeconds = seconds; Changed(); }
+        ImGui.TextWrapped(text["AdvanceInfo"]);
+        ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Accent, text["MiniPlayer"]);
+        var show = config.ShowMini; if (ImGui.Checkbox(text.Label("ShowMini"), ref show)) { config.ShowMini = show; Changed(); }
         var corner = config.Corner;
-        if (ImGui.Combo("配置", ref corner, "自由に移動\0左上\0右上\0左下\0右下\0")) { config.Corner = corner; Changed(); }
-        var pin = config.PinMini; if (ImGui.Checkbox("位置を固定", ref pin)) { config.PinMini = pin; Changed(); }
-        ImGui.TextWrapped("ミニプレイヤー上部の「BGMPlayer」をドラッグすると移動できます。");
-        var opacity = config.Opacity; if (ImGui.SliderFloat("背景の不透明度", ref opacity, 0.5f, 1, "%.2f")) { config.Opacity = opacity; Changed(); }
-        ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Accent, "ライブラリ情報");
+        ImGui.TextUnformatted(text["Position"]); ImGui.SetNextItemWidth(-1);
+        if (ImGui.Combo("##position", ref corner, string.Join('\0', new[] { text["FreePosition"], text["TopLeft"], text["TopRight"], text["BottomLeft"], text["BottomRight"] }) + "\0")) { config.Corner = corner; Changed(); }
+        var pin = config.PinMini; if (ImGui.Checkbox(text.Label("PinPosition"), ref pin)) { config.PinMini = pin; Changed(); }
+        ImGui.TextWrapped(text["MoveInfo"]);
+        ImGui.TextUnformatted(text["Opacity"]); ImGui.SetNextItemWidth(-1);
+        var opacity = config.Opacity; if (ImGui.SliderFloat("##opacity", ref opacity, 0.5f, 1, "%.2f")) { config.Opacity = opacity; Changed(); }
+        ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Accent, text["LibraryInfo"]);
         if (CatalogReady)
         {
-            ImGui.TextUnformatted($"{catalog.Tracks.Count:N0} 曲 / ファイル未収録 {catalog.MissingFiles:N0} 件");
-            ImGui.TextWrapped("インストール済みゲームデータのBGM表を読み取ります。曲名が不明な曲は「曲名未登録」と表示します。場所が分かる場合は場所名を添えています。分類できない曲は「その他」にあります。");
-            foreach (var warning in catalog.Warnings) ImGui.TextWrapped(warning);
+            ImGui.TextUnformatted(text.Format("CatalogCount", catalog.Tracks.Count, catalog.MissingFiles));
+            ImGui.TextWrapped(text["CatalogInfo"]);
+            if (catalog.Warnings.Count > 0) ImGui.TextWrapped(text["CatalogWarning"]);
         }
-        ImGui.TextWrapped("/bgmplayer で開く · /bgmplayer stop でゲームBGMへ戻す");
-        if (ImGui.Button("ゲームBGMへ戻す")) player.Stop();
+        ImGui.TextWrapped(text["CommandHelp"]);
+        if (ImGui.Button(text.Label("RestoreBgm"))) player.Stop();
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
     private void Changed() { revision++; save(); }
@@ -512,13 +534,13 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.SetNextItemWidth(width);
         if (ImGui.SliderInt(label, ref percent, 0, BgmVolumeSession.MaxPercent, "%d%%", ImGuiSliderFlags.AlwaysClamp)) config.VolumePercent = percent;
         if (ImGui.IsItemDeactivatedAfterEdit()) save();
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("100%が通常音量。最大200%（ゲーム側の上限まで）。SE・ボイス・環境音は変更しません。");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(text["VolumeHint"]);
     }
 
     private static Vector2 ClampMiniPosition(Vector2 position, Vector2 viewport, Vector2 size) =>
         Vector2.Clamp(position, Vector2.Zero, Vector2.Max(Vector2.Zero, viewport - size));
 
-    private static bool FavoriteButton(bool selected)
+    private bool FavoriteButton(bool selected)
     {
         var clicked = ImGui.Button("##favorite", new Vector2(22, 22));
         var center = (ImGui.GetItemRectMin() + ImGui.GetItemRectMax()) / 2;
@@ -529,7 +551,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             Vector2 Point(int n) => center + new Vector2(MathF.Cos(n * MathF.PI / 5 - MathF.PI / 2), MathF.Sin(n * MathF.PI / 5 - MathF.PI / 2)) * (n % 2 == 0 ? 7 : 3);
             draw.AddLine(Point(i), Point((i + 1) % 10), color, selected ? 2 : 1);
         }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip(selected ? "お気に入りから解除" : "お気に入りに追加");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip(selected ? text["RemoveFavorite"] : text["AddFavorite"]);
         return clicked;
     }
 

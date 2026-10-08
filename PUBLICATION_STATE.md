@@ -1,8 +1,20 @@
 # BGMPlayer publication state
 
-Updated: 2026-10-04 (JST).
+Updated: 2026-10-08 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
+
+## 0.1.8.0 publication preparation
+
+- Seven-language implementation and release preparation complete. The user authorized publication in the coordinating localization chat on 2026-10-08; this was verified from the original user message.
+- Clean Release build: zero warnings/errors. 170 managed checks, 188 including four official game-data languages, and 34 isolated ImGui checks passed.
+- Seven embedded dictionaries (107 keys each), stable UI IDs, saved choice preservation and public SDK language detection are included.
+- Release ZIP SHA-256: `7C0FB5DE7F34A5D6EEA3FB85AC99502CCF3221790C0E81F406D2ED74986FCA70`.
+- No credential/personal-path matches in distributable source. Existing MIT metadata notices, original icon and author/URL fields retained. Host SDK assemblies and Windows font files are not bundled.
+- Managed font-atlas integration, IME/DPI and native audio remain unverified inside the running game.
+- Shared repo.json and the workspace publication ledger are owned by the coordinating chat and are not changed here.
+
+## Previously verified public release
 
 - Public preview version: 0.1.7.0.
 - Dedicated repository: https://github.com/Roxyz0501/AetherRadio

@@ -8,6 +8,7 @@ namespace AetherRadio;
 public sealed class Configuration : IPluginConfiguration
 {
     public int Version { get; set; } = 2;
+    public string? Language { get; set; }
     public bool ShowMini { get; set; } = true;
     public bool PinMini { get; set; }
     public int Corner { get; set; } = 2;
@@ -22,6 +23,14 @@ public sealed class Configuration : IPluginConfiguration
     public int TrackSeconds { get; set; } = 180;
     public HashSet<ushort> Favorites { get; set; } = [];
     public List<Playlist> Playlists { get; set; } = [];
+
+    public bool InitializeLanguage(params Func<string?>[] sources)
+    {
+        var resolved = Languages.Resolve(Language, sources);
+        if (Language == resolved) return false;
+        Language = resolved;
+        return true;
+    }
 
     public bool Upgrade()
     {

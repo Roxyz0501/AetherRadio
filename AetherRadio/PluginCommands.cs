@@ -1,5 +1,6 @@
 using Dalamud.Game.Command;
 using Dalamud.Plugin.Services;
+using AetherRadio.Core;
 
 namespace AetherRadio;
 
@@ -11,16 +12,22 @@ public sealed class PluginCommands : IDisposable
     private readonly Action open;
     private readonly Action stop;
     private readonly bool legacyRegistered;
+    private readonly Localization text;
+    private readonly CommandInfo mainInfo;
 
-    public PluginCommands(ICommandManager commands, Action open, Action stop)
+    public PluginCommands(ICommandManager commands, Action open, Action stop, Localization? text = null)
     {
         this.commands = commands; this.open = open; this.stop = stop;
-        if (!commands.AddHandler(Main, new CommandInfo(Handle) { HelpMessage = "BGMPlayerを開く。/bgmplayer stop でゲームBGMへ戻す。" }))
-            throw new InvalidOperationException("/bgmplayer は別のプラグインに登録されています。");
+        this.text = text ?? new Localization(() => "en");
+        mainInfo = new CommandInfo(Handle) { HelpMessage = this.text["CommandHelp"] };
+        if (!commands.AddHandler(Main, mainInfo))
+            throw new InvalidOperationException(this.text["CommandConflict"]);
         // Preserve old macros without taking ownership of another plugin's command.
         try { legacyRegistered = commands.AddHandler(Legacy, new CommandInfo(Handle) { ShowInHelp = false }); }
         catch { commands.RemoveHandler(Main); throw; }
     }
+
+    public void RefreshLanguage() => mainInfo.HelpMessage = text["CommandHelp"];
 
     private void Handle(string command, string args)
     {

@@ -1,19 +1,20 @@
-BGMPlayer 0.1.7.0
+BGMPlayer 0.1.8.0
 
-- プレイヤー音量を最大200%まで調整できるようにしました。100%は従来と同じ音量です。
-- メインとミニプレイヤーにループボタンを追加。「リスト全体 → 1曲 → オフ」の順で切り替わります。
-- アイコンに「1」が付くと1曲ループになり、自動曲送りが止まります。
-- 音量とループの設定は保存され、次回も引き継がれます。
-- 初期設定を1曲ループに変更。旧版の設定も今回一度だけ1曲ループへ切り替え、その後の変更は保存します。
+- 設定の「言語 / Language」で日本語・English・Deutsch・Français・한국어・简体中文・繁體中文を選べるようにしました。
+- 初回だけゲーム言語 → Dalamud UI言語 → Englishの順で選びます。保存後はログインやキャラクター切替で上書きしません。
+- タブ、ボタン、ヘルプ、エラー、ジャンル、曲名未登録の表示、支援タブを翻訳しました。
+- 言語変更はすぐに反映され、入力中の検索やリスト名は残ります。長い訳文の折返しと文字表示も調整しました。
+- 正式な曲名・場所名はゲームデータの言語です。補足の曲名は日本語の場合があります。
 
-音量はゲーム側の上限まで上げられます。マスター音量・ミュートは引き続き有効です。
-SE・ボイス・環境音は変更しません。1曲ループはゲーム本来のループを使います。
+設定はDalamudの設定ボタン、または `/bgmplayer` の設定タブから開けます。
+1曲ループの初期設定、マイリスト、音量などはそのまま引き継がれます。
+パケット送信やゲームの音量設定変更は追加していません。
 
-`/xlplugins` からBGMPlayerを更新してください。開くコマンドは `/bgmplayer` です。
+UI resources are embedded for all seven languages. Windows language fonts are used without bundling font files.
+Clean Release build, 188 managed/offline data checks and 34 isolated ImGui checks passed.
+In-game font-atlas rendering, IME/DPI behavior and native audio acceptance remain unverified.
 
-ゲームの音量設定を書き換える処理やパケット送信はありません。
-Releaseビルド、76件の管理コード・オフラインデータチェック、単体UIの操作・保存を確認しました。
-実ゲーム内での音量とループ再生の実機確認は未完了です。
+This is a public preview. The shared custom repository is updated separately.
 
 https://raw.githubusercontent.com/Roxyz0501/DalamudPluginRepo/main/repo.json
 

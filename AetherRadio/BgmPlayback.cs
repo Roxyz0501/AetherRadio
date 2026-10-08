@@ -32,7 +32,7 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
         var setAddress = (nint)BGMSystem.MemberFunctionPointers.SetBGM;
         var resetAddress = (nint)BGMSystem.MemberFunctionPointers.ResetBGM;
         if (setAddress == 0 || resetAddress == 0 || BGMSystem.StaticAddressPointers.ppInstance == null)
-            throw new InvalidOperationException("BGM APIを解決できません。ゲームとDalamudの更新を確認してください。");
+            throw new PlaybackException("ApiUnavailable");
         setHook = interop.HookFromAddress<BGMSystem.Delegates.SetBGM>(setAddress, OnSet);
         try { resetHook = interop.HookFromAddress<BGMSystem.Delegates.ResetBGM>(resetAddress, OnReset); }
         catch { setHook.Dispose(); throw; }
@@ -44,10 +44,10 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            if (!isLoggedIn()) throw new InvalidOperationException("ログイン後に再生できます。");
+            if (!isLoggedIn()) throw new PlaybackException("LoginRequired");
             var system = BGMSystem.Instance();
             if (!IsReady(system) || SoundManager.Instance() == null)
-                throw new InvalidOperationException("BGMエンジンの準備ができていません。");
+                throw new PlaybackException("EngineNotReady");
             if (Current != null && owner != (nint)system) Release(ReleaseMode.Discard);
             if (Current == null)
             {

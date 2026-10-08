@@ -36,7 +36,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
             if (bgm.RowId is 0 or > ushort.MaxValue || string.IsNullOrWhiteSpace(path)) continue;
             if (!data.FileExists(path)) { MissingFiles++; continue; }
             var extra = metadata.GetValueOrDefault((ushort)bgm.RowId);
-            var title = extra?.Title ?? names.GetValueOrDefault(path);
+            var title = names.GetValueOrDefault(path) ?? extra?.Title;
             Tracks.Add((ushort)bgm.RowId, new Track((ushort)bgm.RowId, path, title ?? "曲名未登録") { HasKnownTitle = title != null, MetadataSearch = extra?.SearchTerms ?? "", DurationSeconds = extra?.Seconds });
         }
         Enrich("フィールド分類", () => {
@@ -93,9 +93,10 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
         }
     }
 
-    private static string Genre(ContentFinderCondition duty)
+    private string Genre(ContentFinderCondition duty)
     {
-        var name = duty.ContentType.ValueNullable?.Name.ToString();
+        // Use one official data language for stable classification, independently of the client's display language.
+        var name = data.GetExcelSheet<ContentType>(Language.Japanese).GetRowOrDefault(duty.ContentType.RowId)?.Name.ToString();
         if (string.IsNullOrWhiteSpace(name)) return "その他";
         if (name.Contains("討伐") || name.Contains("討滅")) return "討滅";
         if (name.Contains("レイド")) return "レイド";

@@ -10,6 +10,7 @@
     <Compile Include="../AetherRadio/Player.cs" Link="Player.cs" />
     <Compile Include="../AetherRadio/Configuration.cs" Link="Configuration.cs" />
     <EmbeddedResource Include="../AetherRadio/Data/*.csv" LogicalName="AetherRadio.Data.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../AetherRadio/Locales/*.json" LogicalName="AetherRadio.Locales.%(Filename)%(Extension)" />
     <Reference Include="Lumina" HintPath="$(DalamudLibPath)Lumina.dll" />
     <Reference Include="Lumina.Excel" HintPath="$(DalamudLibPath)Lumina.Excel.dll" />
     <Reference Include="Newtonsoft.Json" HintPath="$(DalamudLibPath)Newtonsoft.Json.dll" />

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DalamudLibPath Condition="'$(DalamudLibPath)' == ''">$(APPDATA)/XIVLauncher/addon/Hooks/dev/</DalamudLibPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(DalamudLibPath)*.dll" Exclude="$(DalamudLibPath)cimgui.dll;$(DalamudLibPath)cimguizmo.dll;$(DalamudLibPath)cimplot.dll;$(DalamudLibPath)nethost.dll;$(DalamudLibPath)Dalamud.Boot.dll" />
+    <Reference Include="AetherRadio" HintPath="../AetherRadio/bin/Release/AetherRadio.dll" />
+    <None Include="$(DalamudLibPath)cimgui.dll" Link="cimgui.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

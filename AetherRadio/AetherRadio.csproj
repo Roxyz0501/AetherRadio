@@ -5,7 +5,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks><PlatformTarget>x64</PlatformTarget>
     <AssemblyName>AetherRadio</AssemblyName><RootNamespace>AetherRadio</RootNamespace>
     <Title>BGMPlayer</Title><Product>BGMPlayer</Product>
-    <Authors>Roxyz0501</Authors><Version>0.1.7.0</Version>
+    <Authors>Roxyz0501</Authors><Version>0.1.8.0</Version>
     <RepoUrl>https://github.com/Roxyz0501/AetherRadio</RepoUrl>
     <IconUrl>https://raw.githubusercontent.com/Roxyz0501/AetherRadio/main/images/icon.png</IconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -18,6 +18,7 @@
     <Compile Include="../Core/*.cs" Link="Core/%(Filename)%(Extension)" />
     <None Include="../images/icon.png" Link="icon.png" CopyToOutputDirectory="PreserveNewest" />
     <EmbeddedResource Include="Data/*.csv" LogicalName="AetherRadio.Data.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Locales/*.json" LogicalName="AetherRadio.Locales.%(Filename)%(Extension)" />
     <None Include="../LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../licenses/*.txt" Link="licenses/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

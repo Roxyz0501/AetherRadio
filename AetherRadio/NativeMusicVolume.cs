@@ -9,7 +9,7 @@ public sealed unsafe class NativeMusicVolume : IMusicVolume
     public NativeMusicVolume()
     {
         if (SoundManager.StaticAddressPointers.ppInstance == null || SoundManager.MemberFunctionPointers.SetVolume == null)
-            throw new InvalidOperationException("BGM音量APIを解決できません。ゲームとDalamudの更新を確認してください。");
+            throw new PlaybackException("VolumeUnavailable");
     }
     public nint Owner => (nint)SoundManager.Instance();
     public float Read(nint owner, MusicChannel channel)
