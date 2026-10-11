@@ -1,10 +1,21 @@
 # BGMPlayer publication state
 
-Updated: 2026-10-11 (JST).
+Updated: 2026-10-12 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
-## Current public release: 1.0.0.0
+## Current public release: 1.0.0.1
+
+- Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.0.0.1
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v1.0.0.1/AetherRadio-1.0.0.1.zip
+- Source commit: `1559df1a627c03ec2105d84a03c40e50e208bf90`; SHA-256: `BDC3970FDCA020CC10EA0B357D34A8023C9B16DBAD10C5263B31F9B1F0CA121E`.
+- Copied the latest canonical StandardPluginTabs.cs exactly and call DrawStandardTrailingTabs once after Library. The unchanged visible order is Library, Settings, Language settings, Support. Saved language, lists, playback settings and direct installer Settings access are retained.
+- Clean Release build: zero warnings/errors. 170 managed and 59 isolated ImGui checks passed, including actual tab IDs/positions and direct Settings access in all seven languages. Navigation causes zero extra catalogue reads; unchanged views cause zero saves.
+- Anonymous repository, image icon and ZIP returned HTTP 200. The downloaded ZIP hash, manifest identity/version/URLs and license notices were verified. Game font-atlas, IME/DPI and native audio acceptance remain unverified; this is a public preview.
+- Shared registration `7ac6802cf3fae1674b9e72f42ef829d8065eed04` updated only AetherRadio, preserving all six other entries after incorporating concurrent updates. The anonymous commit-pinned index returned HTTP 200 with seven entries and version 1.0.0.1. The normal main URL initially returned cached 1.0.0.0.
+- Existing 1.0.0.0 release assets were retained unchanged. Source/index/ledger writes use the GitHub connector; CLI is used only for unsupported Release/asset operations and local Git-object synchronization.
+
+## Previously verified public release: 1.0.0.0
 
 - Public preview published as a prerelease, not a draft, following the user's common-tab update/publication request.
 - Source release commit: `6148f21ce6d476dd3a2b2e90e9a3e64eb80b3b1c`.
