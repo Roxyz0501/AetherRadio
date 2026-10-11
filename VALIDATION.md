@@ -1,6 +1,18 @@
-# Validation — 2026-10-08
+# Validation — 2026-10-11
 
-Version: 0.1.8.0 (public preview). Author: Roxyz0501.
+Version: 1.0.0.0 (public preview). Author: Roxyz0501.
+
+## 1.0.0.0 common language and Support tabs
+
+- Copied the canonical `StandardPluginTabs.cs` without code or namespace changes. The release script compares it against the workspace template when that template is available, ignoring only checkout line endings. Standalone repository builds do not require a sibling workspace template.
+- The localized `Language settings###LanguageSettings` tab owns the seven-language selector. It is no longer in Settings. `Support###Support` calls the same canonical style/content methods, including language order, native names, fixed IDs, colors, spacing, button size and click-only Ko-fi navigation. BGMPlayer's surrounding UI is retained.
+- Seven embedded dictionaries now have 110 complete keys each. Existing first-launch detection, normalization, migration, persistence, command help, audio/session logic and catalogue data have not changed.
+- 188 managed/offline checks passed, including 170 managed checks and the installed Japanese/English/German/French catalogue. All 1,293 installed tracks remain available.
+- 45 isolated ImGui checks passed. They cover glyph coverage in every language, actual language selection with one save per change, preservation of pending text, command help, mini-player repeat/volume/drag, and opening Support in all seven languages with the canonical 300-or-more by 46 pixel button. Antialiased vertex bounds allow a 1.1 pixel inset tolerance. The tests do not click the external link.
+- Software-rendered language/settings/Support previews were inspected for translation layout and glyphs. The selector's language order/native names are checked against saved configuration codes.
+- Clean Release build passed with zero warnings/errors after retrying the NuGet audit through approved network access. Packaging verified the manifest identity/version/URLs, all seven embedded language resources, existing MIT notices, original icon and absence of host SDK binaries. Source checks found no credential or personal workspace path matches.
+- Measured in the isolated harness: the initial catalogue build made 4,810 local sheet-service requests and 1,295 local file-existence checks. These counts are API calls, not physical disk or network reads. Subsequent tab navigation and seven language changes made **0** additional catalogue requests; reselecting the saved language and 120 unchanged frames caused **0** saves. Each actual language change saved once. The unchanged-view target is zero catalogue reads and zero saves; no new DB/network access or polling was introduced.
+- Running-game font-atlas integration, IME/DPI behavior and native audio acceptance remain unverified. The isolated font and rendering checks do not establish those live results.
 
 ## 0.1.8.0 localization
 

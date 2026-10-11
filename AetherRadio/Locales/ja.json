@@ -105,5 +105,8 @@
   "MoveUp": "上へ移動",
   "MoveDown": "下へ移動",
   "RemoveTrack": "リストから外す",
-  "HideMini": "ミニプレイヤーを閉じる"
+  "HideMini": "ミニプレイヤーを閉じる",
+  "LanguageSettings": "言語設定",
+  "DisplayLanguage": "表示言語",
+  "LanguageHelp": "表示言語はすぐに反映され、次回以降も保持されます。初回のみゲーム・Dalamudの言語から選びます。"
 }

@@ -69,8 +69,8 @@ SE・ボイス・環境音は変更しません。停止・終了時にはBGM音
 
 ## 言語 / Language
 
-Dalamudのプラグイン設定ボタン、またはBGMPlayerの「設定」タブにある
-**言語 / Language** から変更できます。日本語・English・Deutsch・Français・한국어・简体中文・繁體中文に対応しています。
+`/bgmplayer` を開き、独立した **言語設定 / Language settings** タブの「表示言語」から変更できます。
+日本語・English・Deutsch・Français・한국어・简体中文・繁體中文に対応しています。
 変更はすぐに反映・保存され、マイリスト名、検索文字、再生設定は保持します。
 
 言語が未設定の場合だけ、ゲームクライアント → Dalamud UI → Englishの順で初期値を決めます。
@@ -84,12 +84,15 @@ Dalamudのプラグイン設定ボタン、またはBGMPlayerの「設定」タ�
 ジャンル、曲名未登録の表示、エラー、コマンドヘルプ、支援タブは選択したUI言語になります。
 
 文字表示にはDalamudの管理フォントとWindowsの言語フォントを使用します。フォントは配布ZIPに同梱しません。
-不足する文字がある場合は設定画面に案内を表示します。Windowsの追加言語フォントを確認してください。
+不足する文字がある場合は言語設定タブに案内を表示します。Windowsの追加言語フォントを確認してください。
 
-Choose **言語 / Language** in Settings to change the UI instantly. Supported languages are Japanese, English,
+Open the separate **Language settings** tab and choose **Display language** to change the UI instantly. Supported languages are Japanese, English,
 German, French, Korean, Simplified Chinese and Traditional Chinese. The first launch uses the game language,
 then the public Dalamud UI language, then English. Your saved choice is never replaced by later detection.
 Official game names keep the game-data language; supplementary song titles can remain Japanese.
+
+言語設定と支援タブはRoxyz0501の共通実装 `AetherRadio/CommonUi/StandardPluginTabs.cs` を使用しています。
+BGMPlayerのプレイヤー部分は従来の外観を維持しています。
 
 ## 収録範囲・検証状況
 
@@ -128,7 +131,7 @@ dotnet run --project Tests -c Release -p:DalamudLibPath='D:/path/to/Dalamud/dev/
 ```
 
 実ゲームのカタログ検証には、テストコマンド末尾に `-- 'D:/path/to/game/sqpack'` を追加します。
-配布ZIPは `artifacts/AetherRadio-0.1.8.0.zip` に生成されます。7言語のリソースはDLLへ埋め込まれます。
+配布ZIPは `artifacts/AetherRadio-1.0.0.0.zip` に生成されます。7言語のリソースはDLLへ埋め込まれます。
 
 UIの単体検証には次のコマンドを使用できます。WindowsのMeiryo、Segoe UI、Malgun Gothic、
 Microsoft YaHei、Microsoft JhengHeiを使用し、出力画像は指定ディレクトリに保存します。

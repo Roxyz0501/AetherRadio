@@ -18,7 +18,9 @@ unsafe partial class Program
         var output = Path.GetFullPath(args[1]); Directory.CreateDirectory(output);
         NativeLibrary.SetDllImportResolver(typeof(ImGui).Assembly, (name, _, _) => name.Contains("cimgui") ? NativeLibrary.Load(Path.Combine(AppContext.BaseDirectory, "cimgui.dll")) : 0);
         using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Language.Japanese });
-        var catalog = new Catalog(new Data(game), (e, s) => throw new Exception(s, e)); catalog.Load();
+        var data = new Data(game);
+        var catalog = new Catalog(data, (e, s) => throw new Exception(s, e)); catalog.Load();
+        var initialReads = (data.SheetReads, data.FileChecks);
         var config = new Configuration { Corner = 4, Language = "ja" };
         var player = new Player(config, catalog, null, DispatchProxy.Create<IClientState, Dummy>(), DispatchProxy.Create<IPluginLog, Dummy>());
         var saves = 0; var changes = 0;
@@ -58,31 +60,68 @@ unsafe partial class Program
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
         var search = typeof(RadioUi).GetField("search", flags)!;
         var newList = typeof(RadioUi).GetField("newList", flags)!;
+        var standard = typeof(RadioUi).Assembly.GetType("Roxyz0501.Dalamud.CommonUi.StandardPluginTabs", true)!;
+        var standardLanguages = (IReadOnlyList<(string Code, string SelfName)>)standard.GetProperty("Languages")!.GetValue(null)!;
+        Check(standardLanguages.Select(l => l.Code).SequenceEqual(Languages.Codes) && standardLanguages.Select(l => l.SelfName).SequenceEqual(Languages.Names), "Canonical language order and native names match stored configuration codes");
+        void LanguageTab()
+        {
+            var text = new Localization(() => config.Language);
+            var x = 238 + ImGui.CalcTextSize(text["Library"]).X + ImGui.CalcTextSize(text["Settings"]).X + 55;
+            Click(x, 188);
+        }
+        (Vector2 Min, Vector2 Max) BoundsForColor(Vector4 color)
+        {
+            var target = ImGui.ColorConvertFloat4ToU32(color);
+            var min = new Vector2(float.MaxValue); var max = new Vector2(float.MinValue);
+            var draw = ImGui.GetDrawData();
+            for (var n = 0; n < draw.CmdListsCount; n++)
+            {
+                var vertices = new ImDrawListPtr(draw.CmdLists[n]).VtxBuffer;
+                for (var v = 0; v < vertices.Size; v++)
+                    if (vertices[v].Col == target) { min = Vector2.Min(min, vertices[v].Pos); max = Vector2.Max(max, vertices[v].Pos); }
+            }
+            if (min.X == float.MaxValue) throw new Exception("Expected shared Support color was not drawn");
+            return (min, max);
+        }
         foreach (var code in Languages.Codes)
         {
             config.Language = code; ui.OpenSettings(); for (var i = 0; i < 3; i++) Frame();
             Render(ImGui.GetDrawData(), textures, Path.Combine(output, code + "-settings.bmp"));
             search.SetValue(ui, "水車"); newList.SetValue(ui, "私の 음악");
-            var text = new Localization(() => code);
             // Main window tab positions derive from the current font metrics.
             Click(250, 188); Frame();
             Check(search.GetValue(ui)?.ToString() == "水車" && newList.GetValue(ui)?.ToString() == "私の 음악", $"Input survives language/tab switching: {code}");
             Render(ImGui.GetDrawData(), textures, Path.Combine(output, code + "-library.bmp"));
-            var supportX = 238 + ImGui.CalcTextSize(text["Library"]).X + ImGui.CalcTextSize(text["Settings"]).X + 55;
-            Click(supportX, 188);
+            LanguageTab();
+            Render(ImGui.GetDrawData(), textures, Path.Combine(output, code + "-language.bmp"));
+            // Locate the actual gold tab geometry; translated label widths vary.
+            var tab = BoundsForColor(new Vector4(0.55f, 0.34f, 0.05f, 1));
+            Click((tab.Min.X + tab.Max.X) / 2, (tab.Min.Y + tab.Max.Y) / 2);
+            io.AddMousePosEvent(200, 100); Frame();
+            var button = BoundsForColor(new Vector4(0.78f, 0.39f, 0.05f, 1));
+            Console.WriteLine($"SUPPORT: {code}; min={button.Min}; max={button.Max}");
+            Check(button.Min.Y > 200 && button.Max.X - button.Min.X >= 298.9f && Math.Abs(button.Max.Y - button.Min.Y - 46) <= 1.1f,
+                $"Support tab opens with canonical button dimensions: {code}");
             Render(ImGui.GetDrawData(), textures, Path.Combine(output, code + "-support.bmp"));
         }
         config.Language = "ja"; ui.OpenSettings(); for (var i = 0; i < 3; i++) Frame();
+        LanguageTab();
         // Exercise the real combo rather than just setting the language property.
         var before = saves;
         for (var i = 1; i <= 7; i++)
         {
-            Click(420, 244);
+            Click(420, 218);
             Render(ImGui.GetDrawData(), textures, Path.Combine(output, "language-dropdown.bmp"));
-            Click(275, 279 + 25 * (i % 7));
+            Click(275, 254 + 25 * (i % 7));
             Check(config.Language == Languages.Codes[i % 7] && saves == before + i && changes == i, $"Language combo switches and saves: {Languages.Codes[i % 7]}");
             Check(search.GetValue(ui)?.ToString() == "水車" && newList.GetValue(ui)?.ToString() == "私の 음악", "Pending input retained after combo change");
         }
+        Click(420, 218); Click(275, 254);
+        Check(saves == before + 7 && changes == 7, "Reselecting the saved language does not write configuration");
+        for (var i = 0; i < 120; i++) Frame();
+        Check(saves == before + 7, "Unchanged language frames do not write configuration");
+        Check((data.SheetReads, data.FileChecks) == initialReads, "Tab navigation and language changes perform zero catalogue reads");
+        Console.WriteLine($"DATA: initial sheet requests={initialReads.SheetReads}; file checks={initialReads.FileChecks}; subsequent reads=0; unchanged saves=0");
         Render(ImGui.GetDrawData(), textures, Path.Combine(output, "language-changed.bmp"));
         var manager = DispatchProxy.Create<ICommandManager, CommandStub>();
         var stub = (CommandStub)(object)manager;
@@ -115,8 +154,10 @@ unsafe partial class Program
 
 sealed class Data(GameData game) : ITrackData
 {
-    public ExcelSheet<T> GetExcelSheet<T>(Language? language = null) where T : struct, IExcelRow<T> => game.GetExcelSheet<T>(language)!;
-    public bool FileExists(string path) => game.FileExists(path);
+    public int SheetReads { get; private set; }
+    public int FileChecks { get; private set; }
+    public ExcelSheet<T> GetExcelSheet<T>(Language? language = null) where T : struct, IExcelRow<T> { SheetReads++; return game.GetExcelSheet<T>(language)!; }
+    public bool FileExists(string path) { FileChecks++; return game.FileExists(path); }
 }
 public class Dummy : DispatchProxy
 {

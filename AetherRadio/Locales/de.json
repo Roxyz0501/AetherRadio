@@ -105,5 +105,8 @@
   "MoveUp": "Nach oben",
   "MoveDown": "Nach unten",
   "RemoveTrack": "Aus Liste entfernen",
-  "HideMini": "Miniplayer ausblenden"
+  "HideMini": "Miniplayer ausblenden",
+  "LanguageSettings": "Spracheinstellungen",
+  "DisplayLanguage": "Anzeigesprache",
+  "LanguageHelp": "Die Auswahl gilt sofort und wird für spätere Sitzungen gespeichert. Nur beim ersten Start wird die Spiel- oder Dalamud-Sprache verwendet."
 }

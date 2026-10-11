@@ -105,5 +105,8 @@
   "MoveUp": "上移",
   "MoveDown": "下移",
   "RemoveTrack": "從清單中移除",
-  "HideMini": "隱藏迷你播放器"
+  "HideMini": "隱藏迷你播放器",
+  "LanguageSettings": "語言設定",
+  "DisplayLanguage": "顯示語言",
+  "LanguageHelp": "所選語言會立即生效並儲存，在下次啟動時保留。僅首次啟動時使用遊戲或 Dalamud 的語言。"
 }

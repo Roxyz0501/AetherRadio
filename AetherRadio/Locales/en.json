@@ -105,5 +105,8 @@
   "MoveUp": "Move up",
   "MoveDown": "Move down",
   "RemoveTrack": "Remove from list",
-  "HideMini": "Hide mini player"
+  "HideMini": "Hide mini player",
+  "LanguageSettings": "Language settings",
+  "DisplayLanguage": "Display language",
+  "LanguageHelp": "Your choice takes effect immediately and is saved for future sessions. Only the first launch uses the game or Dalamud language."
 }

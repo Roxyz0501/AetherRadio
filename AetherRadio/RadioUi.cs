@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using System.Numerics;
 using System.Text;
 using AetherRadio.Core;
 using Dalamud.Bindings.ImGui;
+using Roxyz0501.Dalamud.CommonUi;
 
 namespace AetherRadio;
 
@@ -92,23 +92,18 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             {
                 if (ImGui.BeginTabItem(text.Label("Library"))) { DrawLibrary(); ImGui.EndTabItem(); }
                 if (ImGui.BeginTabItem(text.Label("Settings"), revealSettings ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None)) { revealSettings = false; DrawSettings(); ImGui.EndTabItem(); }
-                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 0.81f, 0.38f, 1));
-                ImGui.PushStyleColor(ImGuiCol.Tab, new Vector4(0.27f, 0.17f, 0.06f, 1));
-                ImGui.PushStyleColor(ImGuiCol.TabHovered, new Vector4(0.43f, 0.28f, 0.09f, 1));
-                ImGui.PushStyleColor(ImGuiCol.TabActive, new Vector4(0.35f, 0.22f, 0.06f, 1));
+                if (ImGui.BeginTabItem(text.Label("LanguageSettings"))) { DrawLanguageSettings(); ImGui.EndTabItem(); }
+                StandardPluginTabs.PushSupportTabStyle();
                 var support = ImGui.BeginTabItem(text.Label("Support"));
-                ImGui.PopStyleColor(4);
+                StandardPluginTabs.PopSupportTabStyle();
                 if (support)
                 {
-                    ImGui.Spacing(); ImGui.TextColored(Accent, "BGMPlayer · Roxyz0501");
-                    ImGui.TextWrapped(text["SupportInfo"]);
-                    ImGui.Spacing(); ImGui.TextUnformatted(text["SupportRecipient"]);
-                    if (ImGui.Button(text.Label("SupportButton")))
+                    try
                     {
-                        try { Process.Start(new ProcessStartInfo("https://ko-fi.com/roxyz0501") { UseShellExecute = true }); }
-                        catch { player.Error = "BrowserError"; }
+                        StandardPluginTabs.DrawSupportContent("BGMPlayer · Roxyz0501", text["SupportInfo"], text["SupportRecipient"], text["SupportButton"]);
                     }
-                    ImGui.TextColored(Muted, "https://ko-fi.com/roxyz0501");
+                    catch { player.Error = "BrowserError"; }
+                    if (player.Error != null) ImGui.TextWrapped(player.Error);
                     ImGui.EndTabItem();
                 }
                 ImGui.EndTabBar();
@@ -479,17 +474,19 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
 
-    private void DrawSettings()
+    private void DrawLanguageSettings()
     {
-        ImGui.TextUnformatted("言語 / Language");
-        var language = Array.IndexOf(Languages.Codes, text.Language);
-        ImGui.SetNextItemWidth(-1);
-        if (ImGui.Combo("##language", ref language, string.Join('\0', Languages.Names) + "\0"))
+        var language = StandardPluginTabs.DrawLanguageSelector(text["DisplayLanguage"], text["LanguageHelp"], text.Language);
+        if (language != null && language != config.Language)
         {
-            config.Language = Languages.Codes[language]; Changed(); LanguageChanged?.Invoke();
+            config.Language = language; Changed(); LanguageChanged?.Invoke();
         }
         if (FontFailed?.Invoke() == true) ImGui.TextWrapped(text["FontError"]);
         ImGui.TextWrapped(text["GameDataLanguage"]);
+    }
+
+    private void DrawSettings()
+    {
         ImGui.Spacing(); ImGui.TextColored(Accent, text["Playback"]);
         ImGui.TextWrapped(text["VolumeInfo"]);
         var locked = config.LockBgm;

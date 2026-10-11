@@ -2,6 +2,12 @@ param([string]$DalamudLibPath = "$env:APPDATA/XIVLauncher/addon/Hooks/dev/")
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $project = Join-Path $root 'AetherRadio/AetherRadio.csproj'
+$canonicalTabs = Join-Path $root '../templates/Dalamud/StandardPluginTabs.cs'
+if (Test-Path -LiteralPath $canonicalTabs) {
+    $canonical = (Get-Content -LiteralPath $canonicalTabs -Raw).Replace("`r`n", "`n")
+    $pluginTabs = (Get-Content -LiteralPath (Join-Path $root 'AetherRadio/CommonUi/StandardPluginTabs.cs') -Raw).Replace("`r`n", "`n")
+    if ($canonical -cne $pluginTabs) { throw 'Shared tab implementation differs from the canonical template' }
+}
 $sdk = (Resolve-Path -LiteralPath $DalamudLibPath).Path + [IO.Path]::DirectorySeparatorChar
 dotnet restore $project --locked-mode "-p:DalamudLibPath=$sdk"
 if ($LASTEXITCODE -ne 0) { throw 'Restore failed' }

@@ -105,5 +105,8 @@
   "MoveUp": "Monter",
   "MoveDown": "Descendre",
   "RemoveTrack": "Retirer de la liste",
-  "HideMini": "Masquer le mini-lecteur"
+  "HideMini": "Masquer le mini-lecteur",
+  "LanguageSettings": "Paramètres de langue",
+  "DisplayLanguage": "Langue d’affichage",
+  "LanguageHelp": "Votre choix s’applique immédiatement et reste enregistré. La langue du jeu ou de Dalamud est utilisée uniquement au premier lancement."
 }
