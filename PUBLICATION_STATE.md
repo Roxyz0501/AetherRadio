@@ -1,10 +1,24 @@
 # BGMPlayer publication state
 
-Updated: 2026-10-08 (JST).
+Updated: 2026-10-11 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
-## Current public release: 0.1.8.0
+## Current public release: 1.0.0.0
+
+- Public preview published as a prerelease, not a draft, following the user's common-tab update/publication request.
+- Source release commit: `6148f21ce6d476dd3a2b2e90e9a3e64eb80b3b1c`.
+- Public Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.0.0.0
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v1.0.0.0/AetherRadio-1.0.0.0.zip
+- ZIP SHA-256: `DCF7C7C75C8418B0A8E7014F6458511444F1939E3BD45BEAA0CCE52287039A42`.
+- Copied the exact canonical shared-tab implementation. The independent localized Language settings tab owns the seven-language selector; Support uses the canonical colors, IDs, spacing, button dimensions and click-only Ko-fi behavior. Saved language, lists, playback preferences and the surrounding player UI are preserved.
+- Clean Release build: zero warnings/errors. 188 managed/offline checks and 45 isolated ImGui checks passed. All seven embedded dictionaries have 110 keys. Native font-atlas integration, IME/DPI and audio acceptance in the running game remain unverified.
+- Anonymous RepoUrl, IconUrl and ZIP returned HTTP 200; the icon has an image content type. The downloaded ZIP hash, manifest version/name/author/URLs, original icon and licenses were verified.
+- Shared repository registration: `71d9d7e991fd84bce941aa042c3acce16c5d71a5`. Only AetherRadio changed; all six other entries are preserved.
+- The anonymous commit-pinned and normal `main` index URLs returned HTTP 200 with all seven entries and BGMPlayer 1.0.0.0. The normal URL initially returned cached 0.1.7.0; revalidation returned the new entry.
+- Source and package checks retained third-party MIT notices and found no credential/personal-path matches; host SDK binaries and Windows font files are not bundled.
+
+## Previously verified public release: 0.1.8.0
 
 - Public preview version: 0.1.8.0, published on 2026-10-08 (JST) as a prerelease, not a draft.
 - Source release commit: `1ba32a791ef1b09b647d1acfc41671981cb077df`.
@@ -17,7 +31,7 @@ Author: Roxyz0501.
 - Public RepoUrl, IconUrl (image content type) and download URL returned HTTP 200 without authentication. The downloaded public ZIP matches the local hash; packaged version, InternalName, display name, author, URLs and upstream license verified.
 - No credential/personal-path matches in distributable source. Existing MIT metadata notices, original icon and author/URL fields retained. Host SDK assemblies and Windows font files are not bundled.
 - Managed font-atlas integration, IME/DPI and native audio remain unverified inside the running game.
-- Shared repo.json and the workspace publication ledger are owned by the coordinating chat and are not changed here. The public shared entry still showed 0.1.7.0 at verification time; registration of 0.1.8.0 is pending there.
+- At the time of this release, shared registration was delegated to the coordinating chat and the index still showed 0.1.7.0. The subsequent 1.0.0.0 update supersedes that pending registration.
 
 ## Previously verified public release: 0.1.7.0
 
