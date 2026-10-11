@@ -83,9 +83,28 @@ unsafe partial class Program
             if (min.X == float.MaxValue) throw new Exception("Expected shared Support color was not drawn");
             return (min, max);
         }
+        void CheckTabOrder(string language)
+        {
+            var bars = ImGui.GetCurrentContext().TabBars.Buf;
+            for (var n = 0; n < bars.Size; n++)
+            {
+                var bar = new ImGuiTabBarPtr(bars.Data + n);
+                if (bar.Tabs.Size != 4) continue;
+                var names = Enumerable.Range(0, 4).Select(i => Marshal.PtrToStringUTF8((nint)(bar.TabsNames.Buf.Data + bar.Tabs[i].NameOffset))!).ToArray();
+                if (!names[0].EndsWith("###Library", StringComparison.Ordinal)) continue;
+                var expected = new[] { "Library", "Settings", "LanguageSettings", "Support" };
+                Check(names.Select(s => s[(s.IndexOf("###", StringComparison.Ordinal) + 3)..]).SequenceEqual(expected)
+                    && Enumerable.Range(1, 3).All(i => bar.Tabs[i].Offset >= bar.Tabs[i - 1].Offset + bar.Tabs[i - 1].Width),
+                    $"Main tab order is Library, Settings, Language settings, Support: {language}");
+                Check(bar.SelectedTabId == bar.Tabs[1].ID, $"Installer settings opens Settings directly: {language}");
+                return;
+            }
+            throw new Exception("Main tab bar was not found");
+        }
         foreach (var code in Languages.Codes)
         {
             config.Language = code; ui.OpenSettings(); for (var i = 0; i < 3; i++) Frame();
+            CheckTabOrder(code);
             Render(ImGui.GetDrawData(), textures, Path.Combine(output, code + "-settings.bmp"));
             search.SetValue(ui, "水車"); newList.SetValue(ui, "私の 음악");
             // Main window tab positions derive from the current font metrics.

@@ -12,6 +12,9 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     public Action? LanguageChanged { get; set; }
     public Func<bool>? FontFailed { get; set; }
     private bool revealSettings;
+    private Action? drawSettingsTab;
+    private Action? drawLanguageTab;
+    private Action? drawSupportTab;
     public void OpenSettings() { Open(); revealSettings = true; }
     private static readonly Vector4 Accent = new(0.60f, 0.81f, 1f, 1);
     private static readonly Vector4 Muted = new(0.64f, 0.69f, 0.71f, 1);
@@ -90,22 +93,18 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             ImGui.Separator();
             if (ImGui.BeginTabBar("tabs"))
             {
-                if (ImGui.BeginTabItem(text.Label("Library"))) { DrawLibrary(); ImGui.EndTabItem(); }
-                if (ImGui.BeginTabItem(text.Label("Settings"), revealSettings ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None)) { revealSettings = false; DrawSettings(); ImGui.EndTabItem(); }
-                if (ImGui.BeginTabItem(text.Label("LanguageSettings"))) { DrawLanguageSettings(); ImGui.EndTabItem(); }
-                StandardPluginTabs.PushSupportTabStyle();
-                var support = ImGui.BeginTabItem(text.Label("Support"));
-                StandardPluginTabs.PopSupportTabStyle();
-                if (support)
+                if (revealSettings)
                 {
-                    try
-                    {
-                        StandardPluginTabs.DrawSupportContent("BGMPlayer · Roxyz0501", text["SupportInfo"], text["SupportRecipient"], text["SupportButton"]);
-                    }
-                    catch { player.Error = "BrowserError"; }
-                    if (player.Error != null) ImGui.TextWrapped(player.Error);
-                    ImGui.EndTabItem();
+                    // Queue the installer Settings request before the first tab's layout.
+                    // The canonical renderer owns BeginTabItem and its flags.
+                    var tabs = ImGui.GetCurrentContext().CurrentTabBar;
+                    tabs.NextSelectedTabId = ImGui.GetID(text.Label("Settings"));
                 }
+                if (ImGui.BeginTabItem(text.Label("Library"))) { DrawLibrary(); ImGui.EndTabItem(); }
+                StandardPluginTabs.DrawStandardTrailingTabs(
+                    text["Settings"], "Settings", drawSettingsTab ??= DrawSettings,
+                    text["LanguageSettings"], drawLanguageTab ??= DrawLanguageSettings,
+                    text["Support"], drawSupportTab ??= DrawSupport);
                 ImGui.EndTabBar();
             }
         }
@@ -487,6 +486,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
 
     private void DrawSettings()
     {
+        revealSettings = false;
         ImGui.Spacing(); ImGui.TextColored(Accent, text["Playback"]);
         ImGui.TextWrapped(text["VolumeInfo"]);
         var locked = config.LockBgm;
@@ -521,6 +521,15 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         }
         ImGui.TextWrapped(text["CommandHelp"]);
         if (ImGui.Button(text.Label("RestoreBgm"))) player.Stop();
+        if (player.Error != null) ImGui.TextWrapped(player.Error);
+    }
+    private void DrawSupport()
+    {
+        try
+        {
+            StandardPluginTabs.DrawSupportContent("BGMPlayer · Roxyz0501", text["SupportInfo"], text["SupportRecipient"], text["SupportButton"]);
+        }
+        catch { player.Error = "BrowserError"; }
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
     private void Changed() { revision++; save(); }

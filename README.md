@@ -93,6 +93,7 @@ Official game names keep the game-data language; supplementary song titles can r
 
 言語設定と支援タブはRoxyz0501の共通実装 `AetherRadio/CommonUi/StandardPluginTabs.cs` を使用しています。
 BGMPlayerのプレイヤー部分は従来の外観を維持しています。
+メインタブは「ライブラリ → 設定 → 言語設定 → 支援」の順です。
 
 ## 収録範囲・検証状況
 
@@ -131,7 +132,7 @@ dotnet run --project Tests -c Release -p:DalamudLibPath='D:/path/to/Dalamud/dev/
 ```
 
 実ゲームのカタログ検証には、テストコマンド末尾に `-- 'D:/path/to/game/sqpack'` を追加します。
-配布ZIPは `artifacts/AetherRadio-1.0.0.0.zip` に生成されます。7言語のリソースはDLLへ埋め込まれます。
+配布ZIPは `artifacts/AetherRadio-1.0.0.1.zip` に生成されます。7言語のリソースはDLLへ埋め込まれます。
 
 UIの単体検証には次のコマンドを使用できます。WindowsのMeiryo、Segoe UI、Malgun Gothic、
 Microsoft YaHei、Microsoft JhengHeiを使用し、出力画像は指定ディレクトリに保存します。

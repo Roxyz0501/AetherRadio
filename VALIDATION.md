@@ -1,6 +1,14 @@
-# Validation — 2026-10-11
+# Validation — 2026-10-12
 
-Version: 1.0.0.0 (public preview). Author: Roxyz0501.
+Version: 1.0.0.1 (public preview). Author: Roxyz0501.
+
+## 1.0.0.1 canonical trailing tab group
+
+- Re-copied the latest canonical `StandardPluginTabs.cs` exactly, including `DrawStandardTrailingTabs`. The plugin calls it once after the Library tab and before ending the main tab bar. There are no plugin-specific tabs after this group.
+- The visible order remains Library, Settings, Language settings, Support. All three drawing callbacks are cached to avoid per-frame delegate allocation. The existing Settings-open request is queued through the SDK's current ImGui tab bar before layout, so the canonical helper remains unchanged and installer Settings access is preserved.
+- 59 isolated ImGui checks passed. In addition to the existing 45 checks, the harness inspects actual tab IDs and horizontal positions in all seven languages, and confirms that installer Settings selects Settings even after a different tab was selected. Language selection, saved choice, glyphs, pending input, Support sizing, command help and mini controls passed.
+- The measured initial catalogue counts remain 4,810 local sheet requests and 1,295 file-existence checks. Tab navigation/language changes make zero additional catalogue requests; same-language reselection and unchanged frames make zero saves. No catalogue, network or persistence implementation changed.
+- Clean Release build and 170 managed checks passed with zero warnings/errors after retrying the NuGet audit with approved network access. Source secret/private-path checks and release packaging validation passed. Native game font-atlas, IME/DPI and audio acceptance remain unverified. Existing published 1.0.0.0 assets are retained; the change uses a separate patch release.
 
 ## 1.0.0.0 common language and Support tabs
 
