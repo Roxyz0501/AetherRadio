@@ -1,10 +1,22 @@
 # BGMPlayer publication state
 
-Updated: 2026-10-12 (JST).
+Updated: 2026-10-18 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
-## Current public release: 1.0.0.1
+## 2026-10-18 — BGMPlayer 1.1.0.0 public preview
+
+- Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.1.0.0
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v1.1.0.0/AetherRadio-1.1.0.0.zip
+- Source/tag commit: `b53f098f33176029a9617678715bafd6c4b7c577`.
+- ZIP SHA-256: `BB9A19E45C8493694A7CFB5E946E2C2D2B756435CFF3A50C9029C9F7A647AD92`.
+- Added mini-player restore/favorite buttons; normal/Savage, alliance and special-content genres; optional suppression of reused audio in later expansion tabs; session-only recent history capped at 30 tracks. Seven-language UI and canonical shared tabs retained.
+- Clean Release: zero warnings/errors; 200 managed checks, 218 with four offline game-data languages, and 71 isolated ImGui checks passed. Initial local sheet-service requests reduced from 4,810 to 11; subsequent navigation/filter/history reads and unchanged saves are zero. All 1,293 installed tracks remain available.
+- Anonymous repository, PNG icon and ZIP returned HTTP 200. Downloaded ZIP matched the hash; packaged manifest version/author/RepoUrl/IconUrl and required license were verified.
+- Shared index commit: `b242aec049c4247441e3c53e5e8954d541830adb`. Both anonymous main and commit-pinned URLs returned HTTP 200, eight entries, version 1.1.0.0 and the new ZIP URL. Seven other plugin entries were unchanged.
+- Live-game audio/font-atlas/IME/DPI acceptance remains unverified; release is a public prerelease, not a draft. No installed DLL replacement; previous assets retained. Source/index/ledger writes used the GitHub connector, with CLI only for unsupported release/asset operations and local Git synchronization.
+
+## Previously verified public release: 1.0.0.1
 
 - Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.0.0.1
 - ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v1.0.0.1/AetherRadio-1.0.0.1.zip
