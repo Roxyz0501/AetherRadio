@@ -108,5 +108,12 @@
   "HideMini": "미니 플레이어 숨기기",
   "LanguageSettings": "언어 설정",
   "DisplayLanguage": "표시 언어",
-  "LanguageHelp": "선택한 언어는 즉시 적용되며 다음 실행에도 유지됩니다. 처음 실행할 때만 게임 또는 Dalamud 언어를 사용합니다."
+  "LanguageHelp": "선택한 언어는 즉시 적용되며 다음 실행에도 유지됩니다. 처음 실행할 때만 게임 또는 Dalamud 언어를 사용합니다.",
+  "NormalRaids": "일반 레이드 (영웅 포함)",
+  "AllianceRaids": "연합 레이드",
+  "SpecialContent": "특수 콘텐츠",
+  "IncludeReusedTracks": "이후 확장팩에도 재사용된 곡 표시",
+  "IncludeReusedHelp": "끄면 동일한 음원은 확인된 가장 오래된 확장팩에만 표시됩니다. 전체 확장팩, 즐겨찾기, 재생목록, 최근 재생에는 영향을 주지 않습니다.",
+  "Recent": "최근 재생",
+  "RecentHelp": "이번 로그인 중 재생한 최근 30곡입니다. 로그아웃하면 초기화됩니다."
 }

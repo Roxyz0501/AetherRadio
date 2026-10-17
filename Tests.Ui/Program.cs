@@ -22,7 +22,10 @@ unsafe partial class Program
         var catalog = new Catalog(data, (e, s) => throw new Exception(s, e)); catalog.Load();
         var initialReads = (data.SheetReads, data.FileChecks);
         var config = new Configuration { Corner = 4, Language = "ja" };
-        var player = new Player(config, catalog, null, DispatchProxy.Create<IClientState, Dummy>(), DispatchProxy.Create<IPluginLog, Dummy>());
+        var client = DispatchProxy.Create<IClientState, Dummy>();
+        ((Dummy)(object)client).LoggedIn = true;
+        var engine = new UiPlayback();
+        var player = new Player(config, catalog, engine, client, DispatchProxy.Create<IPluginLog, Dummy>(), () => engine);
         var saves = 0; var changes = 0;
         var ui = new RadioUi(config, catalog, player, () => saves++) { CatalogReady = true, LanguageChanged = () => changes++ };
         ImGui.CreateContext(); var io = ImGui.GetIO();
@@ -152,6 +155,33 @@ unsafe partial class Program
             Check(stub.Handlers[PluginCommands.Main].HelpMessage == Localization.Get("ko", "CommandHelp"), "Command help can switch repeatedly");
         }
         Check(stub.Handlers.Count == 0, "Localized command handlers are cleaned up");
+        // Exercise the new catalogue views without native audio hooks.
+        config.Language = "ja"; search.SetValue(ui, "");
+        Click(250, 188); Frame();
+        var selected = catalog.Tracks.Values.First(t => t.Locations.Select(l => l.ExpansionId).Distinct().Count() > 1 && t.Locations.All(l => l.ExpansionId != uint.MaxValue));
+        player.Start(selected, [selected.Id]);
+        Click(300, 455);
+        var visibleField = typeof(RadioUi).GetField("visible", flags)!;
+        Check(((List<Track>)visibleField.GetValue(ui)!).Single().Id == selected.Id, "Recent navigation displays the played song");
+        var recentView = visibleField.GetValue(ui); var unchangedSaves = saves;
+        for (var i = 0; i < 120; i++) Frame();
+        Check(ReferenceEquals(recentView, visibleField.GetValue(ui)) && saves == unchangedSaves, "Unchanged recent view reuses filtered rows without saving");
+        player.OnLogout(0, 0); Frame();
+        Check(((List<Track>)visibleField.GetValue(ui)!).Count == 0, "Logout refreshes the open recent view");
+        player.OnLogin();
+        var mode = typeof(RadioUi).GetField("library", flags)!;
+        var exp = typeof(RadioUi).GetField("expansion", flags)!;
+        mode.SetValue(ui, 0); exp.SetValue(ui, selected.Locations.Max(l => l.ExpansionId));
+        var refresh = typeof(RadioUi).GetMethod("RefreshVisible", flags)!;
+        config.ShowReusedTracks = true; refresh.Invoke(ui, [null]);
+        Check(((List<Track>)visibleField.GetValue(ui)!).Contains(selected), "Later expansion includes reused audio when enabled");
+        config.ShowReusedTracks = false; refresh.Invoke(ui, [null]);
+        Check(!((List<Track>)visibleField.GetValue(ui)!).Contains(selected), "Duplicate preference immediately invalidates the visible-track cache");
+        config.Favorites.Add(selected.Id); mode.SetValue(ui, 1); refresh.Invoke(ui, [null]);
+        Check(((List<Track>)visibleField.GetValue(ui)!).Contains(selected), "Favorite view retains a reused song despite the duplicate preference");
+        config.Favorites.Remove(selected.Id); config.ShowReusedTracks = true; exp.SetValue(ui, null); mode.SetValue(ui, 0);
+        Check((data.SheetReads, data.FileChecks) == initialReads && saves == unchangedSaves, "History updates and duplicate filtering cause zero catalogue reads or configuration writes");
+        Check(initialReads.SheetReads <= 12, "Initial sheet requests stay within the catalogue read budget");
         // Mini-player remains operable with a longer translation.
         config.Language = "de";
         typeof(RadioUi).GetField("open", flags)!.SetValue(ui, false); Frame();
@@ -161,6 +191,16 @@ unsafe partial class Program
         var volume = config.VolumePercent;
         Click(1370, 780);
         Check(config.VolumePercent != volume && config.VolumePercent > 100, "Localized mini volume control remains operable");
+        player.Start(selected, [selected.Id]); Frame();
+        var miniSave = saves;
+        Click(1395, 848);
+        Check(config.Favorites.Contains(selected.Id) && saves == miniSave + 1, "Mini favorite button adds the current track with one save");
+        Click(1395, 848);
+        Check(!config.Favorites.Contains(selected.Id) && saves == miniSave + 2, "Mini favorite button removes the current track with one save");
+        var stops = engine.Stops;
+        Click(1150, 848);
+        Check(!player.IsPlaying && engine.Stops == stops + 1 && player.Current == selected, "Mini restore button stops the override while retaining manual resume");
+        Check(saves == miniSave + 2, "Restoring game music does not save configuration");
         io.AddMousePosEvent(1100, 670); Frame(); io.AddMouseButtonEvent(0, true); Frame();
         io.AddMousePosEvent(1000, 580); Frame(); io.AddMouseButtonEvent(0, false); Frame();
         Check(config.Corner == 0 && config.MiniPosition != null, "Localized mini header remains draggable");
@@ -180,7 +220,8 @@ sealed class Data(GameData game) : ITrackData
 }
 public class Dummy : DispatchProxy
 {
-    protected override object? Invoke(MethodInfo? method, object?[]? args) => method!.ReturnType.IsValueType ? Activator.CreateInstance(method.ReturnType) : null;
+    public bool LoggedIn;
+    protected override object? Invoke(MethodInfo? method, object?[]? args) => method!.Name == "get_IsLoggedIn" ? LoggedIn : method.ReturnType.IsValueType ? Activator.CreateInstance(method.ReturnType) : null;
 }
 public class CommandStub : DispatchProxy
 {
@@ -191,4 +232,17 @@ public class CommandStub : DispatchProxy
         "RemoveHandler" => Handlers.Remove((string)args![0]!),
         _ => method.ReturnType.IsValueType ? Activator.CreateInstance(method.ReturnType) : null,
     };
+}
+
+sealed class UiPlayback : IBgmPlayback
+{
+    public ushort? Current { get; private set; }
+    public bool Locked { get; set; }
+    public int VolumePercent { get; set; }
+    public int Stops;
+    public void Play(ushort id) => Current = id;
+    public void Stop() { Current = null; Stops++; }
+    public void ResetSession() => Current = null;
+    public void ValidateOwner() { }
+    public void Dispose() => Current = null;
 }

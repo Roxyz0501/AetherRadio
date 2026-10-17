@@ -108,5 +108,12 @@
   "HideMini": "Hide mini player",
   "LanguageSettings": "Language settings",
   "DisplayLanguage": "Display language",
-  "LanguageHelp": "Your choice takes effect immediately and is saved for future sessions. Only the first launch uses the game or Dalamud language."
+  "LanguageHelp": "Your choice takes effect immediately and is saved for future sessions. Only the first launch uses the game or Dalamud language.",
+  "NormalRaids": "Normal raids (incl. Savage)",
+  "AllianceRaids": "Alliance raids",
+  "SpecialContent": "Special content",
+  "IncludeReusedTracks": "Show reused tracks in later expansions",
+  "IncludeReusedHelp": "When off, each audio file appears only in its earliest known expansion. All expansions, favorites, playlists and recent tracks are unaffected.",
+  "Recent": "Recently played",
+  "RecentHelp": "The last 30 tracks played this session. Cleared on logout."
 }

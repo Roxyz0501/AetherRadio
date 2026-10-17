@@ -73,6 +73,7 @@ OrchestrionTests.Run(Check);
 VolumeBoostTests.Run(Check);
 ConfigurationTests.Run(Check);
 LocalizationTests.Run(Check);
+LibraryFeatureTests.Run(Check);
 
 if (args.Length > 0)
 {
@@ -87,7 +88,7 @@ if (args.Length > 0)
     Check(catalogue.Tracks.Values.Any(x => x.Locations.Any(l => l.Category is "討滅" or "レイド" or "ダンジョン")), "Duty BGM mapping is populated");
     var named = catalogue.Tracks.Values.Count(x => x.HasKnownTitle);
     Check(named > 500, "Bundled metadata resolves Japanese song titles");
-    Check(new[] { "討滅", "レイド", "ダンジョン" }.All(g => catalogue.Tracks.Values.Any(t => t.Locations.Any(l => l.Category == g))), "Duty genres resolve from content type");
+    Check(new[] { "討滅", "ノーマルレイド", "アライアンス", "特殊コンテンツ", "ダンジョン" }.All(g => catalogue.Tracks.Values.Any(t => t.Locations.Any(l => l.Category == g))), "Duty genres resolve from content type");
     Check(catalogue.Tracks.Values.All(t => !t.Title.Contains("BGM_EX", StringComparison.OrdinalIgnoreCase)), "Internal file names are not displayed as song titles");
     Check(catalogue.Tracks.Values.Where(t => !t.HasKnownTitle).All(t => t.Title.Contains("曲名未登録")), "Unknown titles are identified honestly");
     var other = catalogue.Tracks.Values.Count(x => x.Locations.All(l => l.Category == "その他"));

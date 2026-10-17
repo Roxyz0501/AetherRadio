@@ -108,5 +108,12 @@
   "HideMini": "隐藏迷你播放器",
   "LanguageSettings": "语言设置",
   "DisplayLanguage": "显示语言",
-  "LanguageHelp": "所选语言会立即生效并保存，在下次启动时保留。仅首次启动时使用游戏或 Dalamud 的语言。"
+  "LanguageHelp": "所选语言会立即生效并保存，在下次启动时保留。仅首次启动时使用游戏或 Dalamud 的语言。",
+  "NormalRaids": "普通团队任务（含零式）",
+  "AllianceRaids": "大型任务",
+  "SpecialContent": "特殊内容",
+  "IncludeReusedTracks": "在后续资料片中显示复用曲目",
+  "IncludeReusedHelp": "关闭后，同一音源仅显示在已知最早的资料片中。不影响全部资料片、收藏、播放列表和最近播放。",
+  "Recent": "最近播放",
+  "RecentHelp": "本次登录期间最近播放的30首曲目。退出登录后清空。"
 }

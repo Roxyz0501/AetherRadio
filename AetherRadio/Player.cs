@@ -13,6 +13,21 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     private readonly Stopwatch clock = new();
     public PlaybackQueue Queue { get; } = new() { Shuffle = config.Shuffle, Repeat = config.Repeat };
     public Track? Current { get; private set; }
+    private readonly List<ushort> recent = [];
+    public IReadOnlyList<ushort> Recent => recent;
+    public int RecentRevision { get; private set; }
+    private void Remember(ushort id)
+    {
+        if (recent.Count > 0 && recent[0] == id) return;
+        recent.Remove(id); recent.Insert(0, id);
+        if (recent.Count > 30) recent.RemoveAt(30);
+        RecentRevision++;
+    }
+    private void ClearRecent()
+    {
+        if (recent.Count == 0) return;
+        recent.Clear(); RecentRevision++;
+    }
     public bool IsPlaying => engine?.Current != null;
     public bool Available => engine != null || engineFactory != null;
     private readonly Localization text = new(() => config.Language);
@@ -40,6 +55,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
             engine.VolumePercent = config.VolumePercent;
             engine.Play(id);
             Current = track;
+            Remember(id);
             clock.Restart();
             Error = null;
         }
@@ -117,6 +133,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
         clock.Reset();
         Current = null;
         Queue.Clear();
+        ClearRecent();
         Error = null;
         var previous = engine;
         engine = null;
@@ -133,6 +150,6 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     {
         SynchronizeSession();
         try { engine?.Dispose(); }
-        finally { engine = null; clock.Reset(); Current = null; Queue.Clear(); }
+        finally { engine = null; clock.Reset(); Current = null; Queue.Clear(); ClearRecent(); }
     }
 }

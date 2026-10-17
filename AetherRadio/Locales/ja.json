@@ -108,5 +108,12 @@
   "HideMini": "ミニプレイヤーを閉じる",
   "LanguageSettings": "言語設定",
   "DisplayLanguage": "表示言語",
-  "LanguageHelp": "表示言語はすぐに反映され、次回以降も保持されます。初回のみゲーム・Dalamudの言語から選びます。"
+  "LanguageHelp": "表示言語はすぐに反映され、次回以降も保持されます。初回のみゲーム・Dalamudの言語から選びます。",
+  "NormalRaids": "ノーマルレイド（零式含む）",
+  "AllianceRaids": "アライアンス",
+  "SpecialContent": "特殊コンテンツ",
+  "IncludeReusedTracks": "新しい拡張にも過去の曲を表示する",
+  "IncludeReusedHelp": "オフにすると、同じ音源は関連先が確認できる最も古い拡張にだけ表示します。「すべて」やお気に入り、マイリスト、最近の再生には影響しません。",
+  "Recent": "最近の再生",
+  "RecentHelp": "このログイン中に再生した最新30曲。ログアウトでクリアされます。"
 }

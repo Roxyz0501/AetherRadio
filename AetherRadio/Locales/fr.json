@@ -108,5 +108,12 @@
   "HideMini": "Masquer le mini-lecteur",
   "LanguageSettings": "Paramètres de langue",
   "DisplayLanguage": "Langue d’affichage",
-  "LanguageHelp": "Votre choix s’applique immédiatement et reste enregistré. La langue du jeu ou de Dalamud est utilisée uniquement au premier lancement."
+  "LanguageHelp": "Votre choix s’applique immédiatement et reste enregistré. La langue du jeu ou de Dalamud est utilisée uniquement au premier lancement.",
+  "NormalRaids": "Raids normaux (et sadiques)",
+  "AllianceRaids": "Raids en alliance",
+  "SpecialContent": "Contenus spéciaux",
+  "IncludeReusedTracks": "Afficher les morceaux réutilisés dans les extensions suivantes",
+  "IncludeReusedHelp": "Si désactivé, chaque fichier audio apparaît uniquement dans sa première extension connue. Toutes les extensions, les favoris, les listes de lecture et les écoutes récentes restent inchangés.",
+  "Recent": "Écoutes récentes",
+  "RecentHelp": "Les 30 derniers morceaux de cette session. Liste vidée à la déconnexion."
 }

@@ -1,5 +1,16 @@
 # Validation — 2026-10-12
 
+## 1.1.0.0 library and mini-player controls
+
+- 200 managed checks, 218 including the installed Japanese/English/German/French game catalogues. All 1,293 installed tracks remain available. Tests cover normal/Savage versus alliance/special classifications, audio-path reuse across IDs, different arrangements, earliest-known expansion selection, All/Other access, config migration/persistence, bounded recent history, failure exclusion and logout invalidation.
+- 71 isolated ImGui checks passed. Added actual mini restore/favorite clicks, recent navigation and logout refresh, visible-list cache invalidation, favorites bypassing duplicate suppression and unchanged-history cache reuse. Seven-language glyph coverage and shared tabs remain covered. Software-rendered Japanese library and German mini-player layouts inspected; no clipping observed at the harness font size.
+- All seven locale dictionaries contain 117 nonempty keys with matching format placeholders. Canonical shared tabs remain unchanged.
+- Measured local data-service calls: initial catalogue construction requests 11 sheets (previously 4,810), and checks 1,295 audio paths. These are service requests, not physical reads. Target: at most 12 initial requests; one existence check per candidate BGM row. Initial full local BGM enumeration is required to expose all installed tracks; no external transfers or database writes.
+- Tab/language/filter navigation, duplicate toggle filtering and history updates make 0 additional catalogue requests. Unchanged views/history frames cause 0 config saves. Favorite clicks save once each; restore saves zero times. History stays in memory (30 IDs maximum) and clears on logout/unload. Filter options and sorted catalogue are reused; filtered rows update only when their cache key changes. The catalogue is immutable for the plugin session and reloads on plugin initialization; no polling or external synchronization was added.
+- Audio hooks, packet behavior, gain, game settings and one-track-loop defaults were not changed. Mini restore uses the existing Player.Stop path; isolated tests verify dispatch and retained manual resume, not live audio output. No game-packet transmission code was introduced.
+- Running-game audio, Dalamud font-atlas, IME/DPI behavior and other Windows font installations remain unverified.
+
+
 Version: 1.0.0.1 (public preview). Author: Roxyz0501.
 
 ## 1.0.0.1 canonical trailing tab group

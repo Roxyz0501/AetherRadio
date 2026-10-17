@@ -16,6 +16,7 @@ public sealed class Configuration : IPluginConfiguration
     public float Opacity { get; set; } = 0.94f;
     public int VolumePercent { get; set; } = 100;
     public bool LockBgm { get; set; } = true;
+    public bool ShowReusedTracks { get; set; } = true;
     public bool Shuffle { get; set; }
     public RepeatMode Repeat { get; set; } = RepeatMode.One;
     public bool AutoAdvance { get; set; } = true;

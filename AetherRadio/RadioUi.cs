@@ -30,9 +30,14 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private string newList = "";
     private string rename = "";
     private int revision;
-    private string cacheKey = "";
+    private (string, uint?, string?, string?, int, Guid?, int, string, bool, int)? cacheKey;
     private List<Track> visible = [];
-    private Location[]? allLocations;
+    private TrackLibrary? trackLibrary;
+    private TrackLibrary LibraryIndex => trackLibrary ??= new TrackLibrary(catalog.Tracks.Values);
+    private (bool, uint?, string?)? filterKey;
+    private string[] filterGenres = [];
+    private string[] filterAreas = [];
+    private bool selectAllGenres;
     private bool miniDragged;
     public bool CatalogReady { get; set; }
     public void Open() { open = true; revealMain = true; }
@@ -128,6 +133,8 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             ImGui.TextColored(Muted, text["Library"]);
             Nav(text["AllTracks"], 0);
             Nav(text["Favorites"], 1);
+            Nav(text["Recent"], 3);
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip(text["RecentHelp"]);
             ImGui.Separator();
             ImGui.TextColored(Muted, text["Playlists"]);
             foreach (var list in config.Playlists)
@@ -183,29 +190,40 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     }
     private void DrawFilters()
     {
-        var locations = allLocations ??= catalog.Tracks.Values.SelectMany(t => t.Locations).Distinct().ToArray();
+        var includeReused = config.ShowReusedTracks || library != 0;
         if (ImGui.BeginTabBar("expansions", ImGuiTabBarFlags.FittingPolicyScroll))
         {
             ExpansionTab(text["All"], null);
-            foreach (var group in locations.GroupBy(x => x.ExpansionId).OrderBy(x => x.Key))
-                ExpansionTab(text.Expansion(group.First()), group.Key);
+            foreach (var item in LibraryIndex.Expansions)
+                ExpansionTab(text.Expansion(item), item.ExpansionId);
             ImGui.EndTabBar();
         }
-        var scoped = locations.Where(x => expansion == null || x.ExpansionId == expansion).ToArray();
+        RefreshFilterOptions(includeReused);
         if (ImGui.BeginTabBar("genres", ImGuiTabBarFlags.FittingPolicyScroll))
         {
             GenreTab(text["All"], null);
-            foreach (var name in scoped.Select(x => x.Category).Distinct().OrderBy(GenreOrder).ThenBy(x => x)) GenreTab(text.Genre(name), name);
+            foreach (var name in filterGenres) GenreTab(text.Genre(name), name);
             ImGui.EndTabBar();
         }
+        selectAllGenres = false;
+        RefreshFilterOptions(includeReused);
         ImGui.SetNextItemWidth(-1);
         if (ImGui.BeginCombo("##area", area == null ? text["AllAreas"] : area == "未分類のBGM" ? text["Unclassified"] : area))
         {
             if (ImGui.Selectable(text["All"] + "###all-areas", area == null)) { area = null; resetScroll = true; }
-            foreach (var name in scoped.Where(x => genre == null || x.Category == genre).Select(x => x.Name).Distinct().OrderBy(x => x))
+            foreach (var name in filterAreas)
                 if (ImGui.Selectable((name == "未分類のBGM" ? text["Unclassified"] : name) + "###area-" + name, area == name)) { area = name; resetScroll = true; }
             ImGui.EndCombo();
         }
+    }
+    private void RefreshFilterOptions(bool includeReused)
+    {
+        var key = (includeReused, expansion, genre);
+        if (filterKey == key) return;
+        filterKey = key;
+        var scoped = LibraryIndex.Locations(includeReused || expansion == null).Where(l => expansion == null || l.ExpansionId == expansion).ToArray();
+        filterGenres = scoped.Select(l => l.Category).Distinct().OrderBy(GenreOrder).ThenBy(x => x).ToArray();
+        filterAreas = scoped.Where(l => genre == null || l.Category == genre).Select(l => l.Name).Distinct().OrderBy(x => x).ToArray();
     }
     private void ExpansionTab(string label, uint? id)
     {
@@ -217,7 +235,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     {
         // Separate tab state for each expansion avoids retaining a hidden genre.
         ImGui.PushID(expansion?.ToString() ?? "all");
-        if (ImGui.BeginTabItem($"{label}###genre-{value}"))
+        if (ImGui.BeginTabItem($"{label}###genre-{value}", selectAllGenres && value == null ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
         {
             if (genre != value) { genre = value; area = null; resetScroll = true; }
             ImGui.EndTabItem();
@@ -226,7 +244,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     }
     private static int GenreOrder(string name) => name switch
     {
-        "討滅" => 0, "レイド" => 1, "ダンジョン" => 2, "フィールド" => 3, "その他" => 99, _ => 4,
+        "討滅" => 0, "ノーマルレイド" => 1, "アライアンス" => 2, "特殊コンテンツ" => 3, "ダンジョン" => 4, "フィールド" => 5, "その他" => 99, _ => 6,
     };
     private void DrawTrackList(Playlist? list)
     {
@@ -239,17 +257,18 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     }
     private void RefreshVisible(Playlist? list)
     {
-        var key = $"{search}|{expansion}|{genre}|{area}|{library}|{playlist}|{revision}|{text.Language}";
+        var key = (search, expansion, genre, area, library, playlist, revision, text.Language, config.ShowReusedTracks, library == 3 ? player.RecentRevision : 0);
         if (cacheKey == key) return;
         cacheKey = key;
         IEnumerable<Track> source = library switch
         {
-            1 => catalog.Tracks.Values.Where(t => config.Favorites.Contains(t.Id)).OrderBy(t => t.Title),
+            1 => LibraryIndex.Tracks.Where(t => config.Favorites.Contains(t.Id)),
             2 => (list?.Tracks ?? []).Where(catalog.Tracks.ContainsKey).Select(id => catalog.Tracks[id]),
-            _ => catalog.Tracks.Values.OrderBy(t => t.Title),
+            3 => player.Recent.Where(catalog.Tracks.ContainsKey).Select(id => catalog.Tracks[id]),
+            _ => LibraryIndex.Tracks,
         };
         visible = source.Where(t => (string.IsNullOrWhiteSpace(search) || (t.SearchText.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase) || text.Title(t).Contains(search.Trim(), StringComparison.OrdinalIgnoreCase) || t.Locations.Any(l => text.Genre(l.Category).Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)))) &&
-            t.Locations.Any(l => (expansion == null || l.ExpansionId == expansion) && (genre == null || l.Category == genre) && (area == null || l.Name == area))).ToList();
+            LibraryIndex.Matches(t, expansion, genre, area, config.ShowReusedTracks || library != 0)).ToList();
     }
     private void DrawTrack(Track track, Playlist? list)
     {
@@ -397,6 +416,17 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.PushTextWrapPos(0);
         ImGui.TextColored(Muted, player.Error != null ? text["CheckStatus"] : !player.IsPlaying ? text["Stopped"] : config.Repeat == RepeatMode.One ? text["RepeatOne"] : config.AutoAdvance ? text.Format("NextIn", Math.Max(0, player.AdvanceSeconds - (int)player.Elapsed)) : config.LockBgm ? text["BgmLocked"] : text["Playing"]);
         ImGui.PopTextWrapPos();
+        ImGui.BeginDisabled(!player.IsPlaying);
+        if (ImGui.Button(text["RestoreBgm"] + "###mini-restore", new Vector2(Math.Max(100, ImGui.GetContentRegionAvail().X - 32), 0))) player.Stop();
+        ImGui.EndDisabled();
+        ImGui.SameLine();
+        ImGui.BeginDisabled(player.Current == null);
+        if (FavoriteButton(player.Current is { } favorite && config.Favorites.Contains(favorite.Id)) && player.Current is { } favoriteTrack)
+        {
+            if (!config.Favorites.Add(favoriteTrack.Id)) config.Favorites.Remove(favoriteTrack.Id);
+            Changed();
+        }
+        ImGui.EndDisabled();
     }
     private void DrawRepeatButton()
     {
@@ -513,6 +543,12 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.TextUnformatted(text["Opacity"]); ImGui.SetNextItemWidth(-1);
         var opacity = config.Opacity; if (ImGui.SliderFloat("##opacity", ref opacity, 0.5f, 1, "%.2f")) { config.Opacity = opacity; Changed(); }
         ImGui.Spacing(); ImGui.Separator(); ImGui.TextColored(Accent, text["LibraryInfo"]);
+        var reused = config.ShowReusedTracks;
+        if (ImGui.Checkbox(text.Label("IncludeReusedTracks"), ref reused))
+        {
+            config.ShowReusedTracks = reused; genre = null; area = null; selectAllGenres = true; resetScroll = true; Changed();
+        }
+        ImGui.TextWrapped(text["IncludeReusedHelp"]);
         if (CatalogReady)
         {
             ImGui.TextUnformatted(text.Format("CatalogCount", catalog.Tracks.Count, catalog.MissingFiles));

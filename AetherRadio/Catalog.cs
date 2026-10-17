@@ -17,8 +17,18 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
     public int MissingFiles { get; private set; }
     public List<string> Warnings { get; } = [];
 
+    private readonly Dictionary<uint, string> genres = [];
+    private Dictionary<uint, string> contentTypes = [];
+    private Dictionary<uint, string> uiCategories = [];
+    private Dictionary<uint, string> expansions = [];
+
     public void Load()
     {
+        Enrich("分類ラベル", () => {
+            contentTypes = data.GetExcelSheet<ContentType>(Language.Japanese).ToDictionary(x => x.RowId, x => x.Name.ToString());
+            uiCategories = data.GetExcelSheet<ContentUICategory>(Language.Japanese).ToDictionary(x => x.RowId, x => x.Name.ToString());
+            expansions = data.GetExcelSheet<ExVersion>().ToDictionary(x => x.RowId, x => x.Name.ToString());
+        });
         var metadata = MetadataStore.Load();
         var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         Enrich("曲名", () => {
@@ -95,16 +105,14 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
 
     private string Genre(ContentFinderCondition duty)
     {
-        // Use one official data language for stable classification, independently of the client's display language.
-        var name = data.GetExcelSheet<ContentType>(Language.Japanese).GetRowOrDefault(duty.ContentType.RowId)?.Name.ToString();
-        if (string.IsNullOrWhiteSpace(name)) return "その他";
-        if (name.Contains("討伐") || name.Contains("討滅")) return "討滅";
-        if (name.Contains("レイド")) return "レイド";
-        if (name.Contains("ダンジョン")) return name.Contains("ディープ") ? "ディープダンジョン" : "ダンジョン";
-        return name == "PvP" ? "PvP" : "その他のコンテンツ";
+        if (genres.TryGetValue(duty.RowId, out var cached)) return cached;
+        var category = DutyGenre.Classify(contentTypes.GetValueOrDefault(duty.ContentType.RowId, ""),
+            uiCategories.GetValueOrDefault(duty.ContentUICategory.RowId, ""), duty.AllianceRoulette,
+            duty.ContentMemberType.ValueNullable?.PartyCount ?? 0);
+        return genres[duty.RowId] = category;
     }
 
-    private string Expansion(uint id) => data.GetExcelSheet<ExVersion>().GetRowOrDefault(id)?.Name.ToString() is { Length: > 0 } name ? name : $"拡張 {id}";
+    private string Expansion(uint id) => expansions.GetValueOrDefault(id) is { Length: > 0 } name ? name : $"拡張 {id}";
     private static bool ContainsName(string text, string name)
     {
         var position = 0;

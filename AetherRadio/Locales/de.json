@@ -108,5 +108,12 @@
   "HideMini": "Miniplayer ausblenden",
   "LanguageSettings": "Spracheinstellungen",
   "DisplayLanguage": "Anzeigesprache",
-  "LanguageHelp": "Die Auswahl gilt sofort und wird für spätere Sitzungen gespeichert. Nur beim ersten Start wird die Spiel- oder Dalamud-Sprache verwendet."
+  "LanguageHelp": "Die Auswahl gilt sofort und wird für spätere Sitzungen gespeichert. Nur beim ersten Start wird die Spiel- oder Dalamud-Sprache verwendet.",
+  "NormalRaids": "Normale Raids (auch episch)",
+  "AllianceRaids": "Allianz-Raids",
+  "SpecialContent": "Spezielle Inhalte",
+  "IncludeReusedTracks": "Wiederverwendete Titel in späteren Erweiterungen anzeigen",
+  "IncludeReusedHelp": "Wenn deaktiviert, erscheint jede Audiodatei nur in ihrer frühesten bekannten Erweiterung. Alle Erweiterungen, Favoriten, Wiedergabelisten und zuletzt gehörte Titel bleiben unverändert.",
+  "Recent": "Zuletzt gehört",
+  "RecentHelp": "Die letzten 30 Titel dieser Sitzung. Wird beim Ausloggen geleert."
 }

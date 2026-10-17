@@ -71,6 +71,7 @@ public sealed class Localization(Func<string?> language)
     public string Area(Location location) => location.ExpansionId == uint.MaxValue ? this["Unclassified"] : location.Name;
     public string Genre(string name) => this[name switch
     {
+        "ノーマルレイド" => "NormalRaids", "アライアンス" => "AllianceRaids", "特殊コンテンツ" => "SpecialContent",
         "討滅" => "Trials", "レイド" => "Raids", "ダンジョン" => "Dungeons", "フィールド" => "Fields",
         "ディープダンジョン" => "DeepDungeons", "PvP" => "Pvp", "その他のコンテンツ" => "OtherDuties", _ => "Other",
     }];
