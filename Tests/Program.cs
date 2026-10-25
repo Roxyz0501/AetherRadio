@@ -74,6 +74,7 @@ VolumeBoostTests.Run(Check);
 ConfigurationTests.Run(Check);
 LocalizationTests.Run(Check);
 LibraryFeatureTests.Run(Check);
+PersistenceTests.Run(Check);
 
 if (args.Length > 0)
 {

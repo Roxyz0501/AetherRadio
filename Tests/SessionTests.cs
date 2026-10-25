@@ -93,6 +93,11 @@ static class SessionTests
         check(player.IsPlaying && player.Error == null, "Playback can retry when native initialization finishes");
         player.Dispose();
         check(!player.IsPlaying && engines[^1].Disposals == 1 && Math.Abs(mixer.Values[2] - 0.7f) < 0.00001f, "Plugin unload disposes active playback and restores orchestrion volume");
+        var closedAttempts = attempts;
+        player.OnLogin(); player.Start(first, [1, 2]); player.Resume(); player.Next(); player.Previous(); player.Stop();
+        player.Update(); player.OnLogout(0, 0); player.Dispose();
+        check(!player.Available && !player.IsPlaying && player.Current == null && attempts == closedAttempts && engines[^1].Disposals == 1,
+            "Disposed player rejects late callbacks and cannot recreate native hooks");
     }
 }
 

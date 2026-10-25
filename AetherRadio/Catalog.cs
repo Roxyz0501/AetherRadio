@@ -22,8 +22,9 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
     private Dictionary<uint, string> uiCategories = [];
     private Dictionary<uint, string> expansions = [];
 
-    public void Load()
+    public void Load(CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
         Enrich("分類ラベル", () => {
             contentTypes = data.GetExcelSheet<ContentType>(Language.Japanese).ToDictionary(x => x.RowId, x => x.Name.ToString());
             uiCategories = data.GetExcelSheet<ContentUICategory>(Language.Japanese).ToDictionary(x => x.RowId, x => x.Name.ToString());
@@ -35,6 +36,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
             var paths = data.GetExcelSheet<OrchestrionPath>();
             foreach (var song in data.GetExcelSheet<Orchestrion>())
             {
+                cancellation.ThrowIfCancellationRequested();
                 var path = paths.GetRowOrDefault(song.RowId)?.File.ToString();
                 var title = song.Name.ToString();
                 if (!string.IsNullOrWhiteSpace(path) && !string.IsNullOrWhiteSpace(title)) names.TryAdd(path, title);
@@ -42,6 +44,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
         });
         foreach (var bgm in data.GetExcelSheet<BGM>())
         {
+            cancellation.ThrowIfCancellationRequested();
             var path = bgm.File.ToString();
             if (bgm.RowId is 0 or > ushort.MaxValue || string.IsNullOrWhiteSpace(path)) continue;
             if (!data.FileExists(path)) { MissingFiles++; continue; }
@@ -52,6 +55,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
         Enrich("フィールド分類", () => {
             foreach (var territory in data.GetExcelSheet<TerritoryType>())
             {
+                cancellation.ThrowIfCancellationRequested();
                 var duty = territory.ContentFinderCondition.ValueNullable;
                 var dutyName = duty?.Name.ToString();
                 var areaName = territory.PlaceName.ValueNullable?.Name.ToString();
@@ -65,6 +69,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
         Enrich("コンテンツ分類", () => {
             foreach (var instance in data.GetExcelSheet<InstanceContent>())
             {
+                cancellation.ThrowIfCancellationRequested();
                 if (instance.ContentFinderCondition.ValueNullable is not { } duty) continue;
                 var name = duty.Name.ToString();
                 if (string.IsNullOrWhiteSpace(name)) continue;
@@ -78,6 +83,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
             var englishDuties = data.GetExcelSheet<ContentFinderCondition>(Language.English);
             foreach (var territory in data.GetExcelSheet<TerritoryType>())
             {
+                cancellation.ThrowIfCancellationRequested();
                 var duty = territory.ContentFinderCondition.ValueNullable;
                 var isDuty = duty is { } d && !string.IsNullOrWhiteSpace(d.Name.ToString());
                 var name = isDuty ? duty!.Value.Name.ToString() : territory.PlaceName.ValueNullable?.Name.ToString();
@@ -143,6 +149,6 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
     private void Enrich(string label, System.Action action)
     {
         try { action(); }
-        catch (Exception e) { Warnings.Add($"{label}を一部取得できません。未分類の曲は「その他」で検索できます。"); log(e, label); }
+        catch (Exception e) when (e is not OperationCanceledException) { Warnings.Add($"{label}を一部取得できません。未分類の曲は「その他」で検索できます。"); log(e, label); }
     }
 }

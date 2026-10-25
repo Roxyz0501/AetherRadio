@@ -6,9 +6,11 @@ using Roxyz0501.Dalamud.CommonUi;
 
 namespace AetherRadio;
 
-public sealed class RadioUi(Configuration config, Catalog catalog, Player player, Action save)
+public sealed class RadioUi(Configuration config, Catalog catalog, Player player, Action markChanged)
 {
     private readonly Localization text = new(() => config.Language);
+    public Func<string?>? PersistenceStatus { get; set; }
+    public Action? RetrySave { get; set; }
     public Action? LanguageChanged { get; set; }
     public Func<bool>? FontFailed { get; set; }
     private bool revealSettings;
@@ -38,7 +40,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private string[] filterGenres = [];
     private string[] filterAreas = [];
     private bool selectAllGenres;
-    private bool miniDragged;
+
     public bool CatalogReady { get; set; }
     public void Open() { open = true; revealMain = true; }
 
@@ -364,10 +366,9 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
                     config.Corner = 0;
                     config.MiniPosition = ClampMiniPosition(ImGui.GetWindowPos() + delta - viewport.WorkPos, viewport.WorkSize, size);
                     ImGui.SetWindowPos(viewport.WorkPos + config.MiniPosition.Value);
-                    miniDragged = true;
+                    markChanged();
                 }
             }
-            if (miniDragged && !ImGui.IsMouseDown(ImGuiMouseButton.Left)) { miniDragged = false; Changed(); }
             ImGui.SameLine();
             if (ImGui.SmallButton((config.PinMini ? text["Unpin"] : text["Pin"]) + "###mini-pin")) { config.PinMini = !config.PinMini; Changed(); }
             ImGui.SameLine();
@@ -456,6 +457,11 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             d.AddLine(c + new Vector2(7, -5), c + new Vector2(7, -1), color, 1.4f);
             d.AddLine(c + new Vector2(3, 5), c + new Vector2(7, 5), color, 1.4f);
         }
+        else if (icon == "mini")
+        {
+            d.AddRect(c - new Vector2(10, 8), c + new Vector2(10, 8), color, 2, ImDrawFlags.None, 1.4f);
+            d.AddRectFilled(c + new Vector2(1, 0), c + new Vector2(7, 5), color, 1);
+        }
         else if (icon == "repeat")
         {
             d.AddLine(c + new Vector2(-8, 2), c + new Vector2(-8, -6), color, 1.4f);
@@ -498,7 +504,10 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         if (TransportButton("shuffle", text["Shuffle"], config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
         ImGui.EndDisabled();
         ImGui.SameLine(); DrawRepeatButton();
-        ImGui.SameLine(); ImGui.SetCursorPosX(250);
+        ImGui.SameLine();
+        if (TransportButton("mini", config.ShowMini ? text["HideMini"] : text["ShowMini"], config.ShowMini))
+        { config.ShowMini = !config.ShowMini; Changed(); }
+        ImGui.SameLine();
         DrawVolume(text.Label("Volume"), 220);
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
@@ -517,6 +526,13 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private void DrawSettings()
     {
         revealSettings = false;
+        ImGui.TextWrapped(text["SaveInfo"]);
+        if (PersistenceStatus?.Invoke() is { } status)
+        {
+            ImGui.TextWrapped(text[status]);
+            if (status is "SaveFailed" or "SaveStopped" or "BackupCleanupFailed")
+                if (ImGui.Button(text.Label("RetrySave"))) RetrySave?.Invoke();
+        }
         ImGui.Spacing(); ImGui.TextColored(Accent, text["Playback"]);
         ImGui.TextWrapped(text["VolumeInfo"]);
         var locked = config.LockBgm;
@@ -568,14 +584,13 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         catch { player.Error = "BrowserError"; }
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
-    private void Changed() { revision++; save(); }
+    private void Changed() { revision++; markChanged(); }
 
     private void DrawVolume(string label, float width)
     {
         var percent = config.VolumePercent;
         ImGui.SetNextItemWidth(width);
-        if (ImGui.SliderInt(label, ref percent, 0, BgmVolumeSession.MaxPercent, "%d%%", ImGuiSliderFlags.AlwaysClamp)) config.VolumePercent = percent;
-        if (ImGui.IsItemDeactivatedAfterEdit()) save();
+        if (ImGui.SliderInt(label, ref percent, 0, BgmVolumeSession.MaxPercent, "%d%%", ImGuiSliderFlags.AlwaysClamp)) { config.VolumePercent = percent; markChanged(); }
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(text["VolumeHint"]);
     }
 

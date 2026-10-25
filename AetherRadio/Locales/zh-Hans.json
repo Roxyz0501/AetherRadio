@@ -108,12 +108,18 @@
   "HideMini": "隐藏迷你播放器",
   "LanguageSettings": "语言设置",
   "DisplayLanguage": "显示语言",
-  "LanguageHelp": "所选语言会立即生效并保存，在下次启动时保留。仅首次启动时使用游戏或 Dalamud 的语言。",
+  "LanguageHelp": "所选语言会立即生效。设置会定期保存，在下次启动时保留。仅首次启动时使用游戏或 Dalamud 的语言。",
   "NormalRaids": "普通团队任务（含零式）",
   "AllianceRaids": "大型任务",
   "SpecialContent": "特殊内容",
   "IncludeReusedTracks": "在后续资料片中显示复用曲目",
   "IncludeReusedHelp": "关闭后，同一音源仅显示在已知最早的资料片中。不影响全部资料片、收藏、播放列表和最近播放。",
   "Recent": "最近播放",
-  "RecentHelp": "本次登录期间最近播放的30首曲目。退出登录后清空。"
+  "RecentHelp": "本次登录期间最近播放的30首曲目。退出登录后清空。",
+  "SaveInfo": "更改立即生效。有更改时每60秒保存设置，退出登录或正常关闭时也会保存。",
+  "SettingsRecovered": "已从备份恢复设置。保存时将以其他名称保留损坏的文件。",
+  "SaveFailed": "无法保存设置。未保存的更改仍保留在内存中。请检查可用空间和访问权限。",
+  "SaveStopped": "保存连续失败3次，已停止自动保存。解决原因后请重试保存。",
+  "RetrySave": "重试保存",
+  "BackupCleanupFailed": "设置已保存，但无法清理旧备份。请检查文件锁定和访问权限，然后重试。"
 }

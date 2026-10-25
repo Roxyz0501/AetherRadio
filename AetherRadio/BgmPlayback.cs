@@ -111,7 +111,10 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
             {
                 if (!Locked) { Stop(); return; }
                 // Catch direct local engine changes which bypass SetBGM/ResetBGM.
-                pending[0] = new Request(system->Scenes[0].BgmId, 0);
+                var scene = system->Scenes[0];
+                pending[0] = new Request(scene.BgmId, 0, Fade: scene.EnableCustomFade,
+                    Out: scene.FadeOutTime, In: scene.FadeInTime, Start: scene.FadeInStartTime,
+                    Volume: scene.InitialVolume, Reset: scene.BgmId == 0);
                 ApplySelection(id);
             }
             if (Current != null) volume.Apply(VolumePercent);

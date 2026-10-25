@@ -115,5 +115,11 @@
   "IncludeReusedTracks": "Afficher les morceaux réutilisés dans les extensions suivantes",
   "IncludeReusedHelp": "Si désactivé, chaque fichier audio apparaît uniquement dans sa première extension connue. Toutes les extensions, les favoris, les listes de lecture et les écoutes récentes restent inchangés.",
   "Recent": "Écoutes récentes",
-  "RecentHelp": "Les 30 derniers morceaux de cette session. Liste vidée à la déconnexion."
+  "RecentHelp": "Les 30 derniers morceaux de cette session. Liste vidée à la déconnexion.",
+  "SaveInfo": "Les modifications sont appliquées immédiatement, puis enregistrées toutes les 60 secondes si nécessaire, à la déconnexion et à la fermeture normale.",
+  "SettingsRecovered": "Les paramètres ont été récupérés depuis une sauvegarde. Le fichier endommagé sera conservé sous un autre nom lors de l’enregistrement.",
+  "SaveFailed": "Enregistrement impossible. Les modifications sont conservées en mémoire. Vérifiez l’espace libre et les droits d’accès.",
+  "SaveStopped": "Enregistrement automatique arrêté après trois échecs. Corrigez la cause, puis réessayez.",
+  "RetrySave": "Réessayer l’enregistrement",
+  "BackupCleanupFailed": "Les paramètres sont enregistrés, mais les anciennes sauvegardes n’ont pas pu être supprimées. Vérifiez les verrous et les droits d’accès, puis réessayez."
 }

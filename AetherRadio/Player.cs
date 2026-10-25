@@ -8,6 +8,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     IClientState client, IPluginLog log, Func<IBgmPlayback>? engineFactory = null) : IDisposable
 {
     private IBgmPlayback? engine = initialEngine;
+    private bool disposed;
     private bool sessionActive = client.IsLoggedIn;
     private bool observedLogin = client.IsLoggedIn;
     private readonly Stopwatch clock = new();
@@ -29,7 +30,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
         recent.Clear(); RecentRevision++;
     }
     public bool IsPlaying => engine?.Current != null;
-    public bool Available => engine != null || engineFactory != null;
+    public bool Available => !disposed && (engine != null || engineFactory != null);
     private readonly Localization text = new(() => config.Language);
     private string? errorKey;
     public string? Error { get => errorKey == null ? null : text[errorKey]; set => errorKey = value; }
@@ -75,6 +76,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     public void Previous() { if (CanPlay() && Queue.Previous() is { } id) Play(id); }
     public void Stop()
     {
+        if (disposed) return;
         SynchronizeSession();
         clock.Stop();
         try { engine?.Stop(); }
@@ -82,6 +84,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     }
     public void Update()
     {
+        if (disposed) return;
         try { UpdatePlayback(); }
         catch (Exception e) { Error = e is PlaybackException known ? known.Key : "PlaybackError"; log.Error(e, "BGM update failed"); Stop(); }
     }
@@ -98,6 +101,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
 
     public void OnLogin()
     {
+        if (disposed) return;
         if (!sessionActive) ResetSession();
         sessionActive = true;
         observedLogin = client.IsLoggedIn;
@@ -105,6 +109,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
 
     public void OnLogout(int type, int code)
     {
+        if (disposed) return;
         sessionActive = false;
         observedLogin = client.IsLoggedIn;
         ResetSession();
@@ -122,6 +127,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
 
     private bool CanPlay()
     {
+        if (disposed) return false;
         SynchronizeSession();
         if (sessionActive && client.IsLoggedIn) return true;
         Error = "LoginRequired";
@@ -148,7 +154,8 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
 
     public void Dispose()
     {
-        SynchronizeSession();
+        if (disposed) return;
+        disposed = true;
         try { engine?.Dispose(); }
         finally { engine = null; clock.Reset(); Current = null; Queue.Clear(); ClearRecent(); }
     }

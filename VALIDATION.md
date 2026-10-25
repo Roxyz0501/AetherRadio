@@ -1,5 +1,13 @@
 # Validation — 2026-10-12
 
+## 2026-10-22 persistence remediation (1.1.1.0)
+
+- 60-second changed-only configuration persistence, bounded retries, three valid backups, recovery and shutdown flushing implemented. See [PERSISTENCE_REMEDIATION.md](PERSISTENCE_REMEDIATION.md) for scope, failure cases and measurements.
+- Clean Release: zero warnings/errors. 235 managed and 76 isolated ImGui checks passed. No production configuration migration or installed DLL replacement.
+- Synthetic continuous edits plus logout/exit flushing: 3 changed commits / 1,841 payload bytes; idle and post-dispose writes 0. UI scenario: 3 commits including fixture initialization / 1,348 payload bytes. These are application payload counts, not SSD physical I/O.
+- Session-only recent playback remains in memory; daily persistent history and HistoryFiles UI are not applicable. Canonical standard tabs remain byte-identical. Existing native audio and font-atlas limitations still apply.
+
+
 ## 1.1.0.0 library and mini-player controls
 
 - 200 managed checks, 218 including the installed Japanese/English/German/French game catalogues. All 1,293 installed tracks remain available. Tests cover normal/Savage versus alliance/special classifications, audio-path reuse across IDs, different arrangements, earliest-known expansion selection, All/Other access, config migration/persistence, bounded recent history, failure exclusion and logout invalidation.
@@ -172,3 +180,11 @@ Version: 1.0.0.1 (public preview). Author: Roxyz0501.
    Unload/reload and check that no override survives; inspect Dalamud logs for errors.
 8. Verify public RepoUrl, IconUrl (HTTP 200 + image type), release ZIP URLs, and
    packaged metadata before adding the shared repository entry.
+
+## 2026-10-25 full recheck and main mini-player toggle (1.1.1.0)
+
+Reviewed playback/session/volume ownership, queue behavior, catalogue/filter caches, UI controls, localization, commands, fonts and deferred atomic persistence. Added the main transport toggle using the existing ShowMini/HideMini translations and the same saved ShowMini value as Settings and the mini close button. Seven-language actual ImGui clicks verify immediate hide/show, one dirty notification per click, and zero immediate file writes.
+
+Fixed oversized-primary recovery (including repair preserving the entire oversized original), post-dispose playback recreation, and direct native scene restoration metadata (zero BGM uses ResetBGM; fade and initial-volume fields are retained). Regression tests cover oversized files and all late player entry points. Native scene restoration was code-reviewed and compiled; actual native audio behavior remains unverified.
+
+Clean Release has zero warnings/errors. 238 managed checks / 256 with four offline game-data languages passed; 90 isolated ImGui checks passed. Catalogue retains 1,293 installed tracks, all genre coverage and no internal file-name titles. Initial catalogue sheet requests remain 11; subsequent navigation reads are zero. Synthetic UI scenario has three commits / 1,348 logical payload bytes including initial fixture, zero writes during unchanged frames or immediate toggles. No production configuration or installed plugin DLL was changed. Physical SSD writes and live-game audio/lifecycle/font-atlas/IME/DPI behavior are not measured by these tests.

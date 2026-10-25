@@ -115,5 +115,11 @@
   "IncludeReusedTracks": "Show reused tracks in later expansions",
   "IncludeReusedHelp": "When off, each audio file appears only in its earliest known expansion. All expansions, favorites, playlists and recent tracks are unaffected.",
   "Recent": "Recently played",
-  "RecentHelp": "The last 30 tracks played this session. Cleared on logout."
+  "RecentHelp": "The last 30 tracks played this session. Cleared on logout.",
+  "SaveInfo": "Changes apply immediately. Settings save every 60 seconds when changed, and on logout or normal exit.",
+  "SettingsRecovered": "Settings were recovered from a backup. The damaged file will be preserved under another name on save.",
+  "SaveFailed": "Settings could not be saved. Unsaved changes are retained. Check free space and access permissions.",
+  "SaveStopped": "Autosave stopped after three failures. Resolve the cause, then choose Retry save.",
+  "RetrySave": "Retry save",
+  "BackupCleanupFailed": "Settings are saved, but old backups could not be pruned. Check file locks and access permissions, then retry."
 }

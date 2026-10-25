@@ -27,7 +27,11 @@ unsafe partial class Program
         var engine = new UiPlayback();
         var player = new Player(config, catalog, engine, client, DispatchProxy.Create<IPluginLog, Dummy>(), () => engine);
         var saves = 0; var changes = 0;
-        var ui = new RadioUi(config, catalog, player, () => saves++) { CatalogReady = true, LanguageChanged = () => changes++ };
+        long saveTime = 0;
+        var settingsFile = new AtomicSettingsFile<Configuration>(Path.Combine(output, "synthetic-settings-" + Guid.NewGuid().ToString("N") + ".json"), ConfigurationCodec.Decode, ConfigurationCodec.Encode);
+        settingsFile.Write(ConfigurationCodec.Encode(config));
+        using var persistence = new DeferredSettings<Configuration>(settingsFile, () => config, settingsFile.Load(() => new()).Baseline, false, e => throw e, () => saveTime);
+        var ui = new RadioUi(config, catalog, player, () => { saves++; persistence.MarkDirty(); }) { CatalogReady = true, LanguageChanged = () => changes++ };
         ImGui.CreateContext(); var io = ImGui.GetIO();
         io.IniFilename = null; io.DisplaySize = new Vector2(1440, 900); io.DeltaTime = 1f / 60;
         io.ConfigInputTrickleEventQueue = false; io.ConfigWindowsMoveFromTitleBarOnly = true;
@@ -114,6 +118,12 @@ unsafe partial class Program
             Click(250, 188); Frame();
             Check(search.GetValue(ui)?.ToString() == "水車" && newList.GetValue(ui)?.ToString() == "私の 음악", $"Input survives language/tab switching: {code}");
             Render(ImGui.GetDrawData(), textures, Path.Combine(output, code + "-library.bmp"));
+            var toggleChanges = saves; var toggleWrites = settingsFile.Commits;
+            Click(475, 721);
+            Check(!config.ShowMini && saves == toggleChanges + 1 && settingsFile.Commits == toggleWrites, $"Main mini toggle hides immediately without disk writes: {code}");
+            Click(475, 721);
+            Check(config.ShowMini && saves == toggleChanges + 2 && settingsFile.Commits == toggleWrites, $"Main mini toggle shows immediately without disk writes: {code}");
+
             LanguageTab();
             Render(ImGui.GetDrawData(), textures, Path.Combine(output, code + "-language.bmp"));
             // Locate the actual gold tab geometry; translated label widths vary.
@@ -135,15 +145,15 @@ unsafe partial class Program
             Click(420, 218);
             Render(ImGui.GetDrawData(), textures, Path.Combine(output, "language-dropdown.bmp"));
             Click(275, 254 + 25 * (i % 7));
-            Check(config.Language == Languages.Codes[i % 7] && saves == before + i && changes == i, $"Language combo switches and saves: {Languages.Codes[i % 7]}");
+            Check(config.Language == Languages.Codes[i % 7] && saves == before + i && changes == i, $"Language combo switches and marks settings dirty: {Languages.Codes[i % 7]}");
             Check(search.GetValue(ui)?.ToString() == "水車" && newList.GetValue(ui)?.ToString() == "私の 음악", "Pending input retained after combo change");
         }
         Click(420, 218); Click(275, 254);
-        Check(saves == before + 7 && changes == 7, "Reselecting the saved language does not write configuration");
+        Check(saves == before + 7 && changes == 7, "Reselecting the saved language does not mark configuration dirty");
         for (var i = 0; i < 120; i++) Frame();
-        Check(saves == before + 7, "Unchanged language frames do not write configuration");
+        Check(saves == before + 7, "Unchanged language frames do not mark configuration dirty");
         Check((data.SheetReads, data.FileChecks) == initialReads, "Tab navigation and language changes perform zero catalogue reads");
-        Console.WriteLine($"DATA: initial sheet requests={initialReads.SheetReads}; file checks={initialReads.FileChecks}; subsequent reads=0; unchanged saves=0");
+        Console.WriteLine($"DATA: initial sheet requests={initialReads.SheetReads}; file checks={initialReads.FileChecks}; subsequent reads=0; unchanged dirty notifications=0");
         Render(ImGui.GetDrawData(), textures, Path.Combine(output, "language-changed.bmp"));
         var manager = DispatchProxy.Create<ICommandManager, CommandStub>();
         var stub = (CommandStub)(object)manager;
@@ -180,7 +190,7 @@ unsafe partial class Program
         config.Favorites.Add(selected.Id); mode.SetValue(ui, 1); refresh.Invoke(ui, [null]);
         Check(((List<Track>)visibleField.GetValue(ui)!).Contains(selected), "Favorite view retains a reused song despite the duplicate preference");
         config.Favorites.Remove(selected.Id); config.ShowReusedTracks = true; exp.SetValue(ui, null); mode.SetValue(ui, 0);
-        Check((data.SheetReads, data.FileChecks) == initialReads && saves == unchangedSaves, "History updates and duplicate filtering cause zero catalogue reads or configuration writes");
+        Check((data.SheetReads, data.FileChecks) == initialReads && saves == unchangedSaves, "History updates and duplicate filtering cause zero catalogue reads or change notifications");
         Check(initialReads.SheetReads <= 12, "Initial sheet requests stay within the catalogue read budget");
         // Mini-player remains operable with a longer translation.
         config.Language = "de";
@@ -194,18 +204,35 @@ unsafe partial class Program
         player.Start(selected, [selected.Id]); Frame();
         var miniSave = saves;
         Click(1395, 848);
-        Check(config.Favorites.Contains(selected.Id) && saves == miniSave + 1, "Mini favorite button adds the current track with one save");
+        Check(config.Favorites.Contains(selected.Id) && saves == miniSave + 1, "Mini favorite button adds the current track with one change notification");
         Click(1395, 848);
-        Check(!config.Favorites.Contains(selected.Id) && saves == miniSave + 2, "Mini favorite button removes the current track with one save");
+        Check(!config.Favorites.Contains(selected.Id) && saves == miniSave + 2, "Mini favorite button removes the current track with one change notification");
         var stops = engine.Stops;
         Click(1150, 848);
         Check(!player.IsPlaying && engine.Stops == stops + 1 && player.Current == selected, "Mini restore button stops the override while retaining manual resume");
-        Check(saves == miniSave + 2, "Restoring game music does not save configuration");
+        Check(saves == miniSave + 2, "Restoring game music does not mark configuration dirty");
         io.AddMousePosEvent(1100, 670); Frame(); io.AddMouseButtonEvent(0, true); Frame();
         io.AddMousePosEvent(1000, 580); Frame(); io.AddMouseButtonEvent(0, false); Frame();
         Check(config.Corner == 0 && config.MiniPosition != null, "Localized mini header remains draggable");
         for (var i = 0; i < 5; i++) Frame();
         Render(ImGui.GetDrawData(), textures, Path.Combine(output, "de-mini.bmp"));
+        Check(settingsFile.Commits == 1, "UI persistence: all preceding interactions wrote zero settings files before 60 seconds");
+        saveTime = 60_000; persistence.Tick(); persistence.Flush();
+        var savedSettings = settingsFile.Load(() => new()).Value;
+        Check(settingsFile.Commits == 2 && savedSettings.MiniPosition == config.MiniPosition && savedSettings.VolumePercent == config.VolumePercent && savedSettings.Language == config.Language,
+            "UI persistence: one boundary write includes latest language, position and volume");
+        var notificationsBeforeDrag = saves;
+        io.AddMousePosEvent(config.MiniPosition!.Value.X + 90, config.MiniPosition.Value.Y + 25); Frame();
+        io.AddMouseButtonEvent(0, true); Frame();
+        io.AddMousePosEvent(config.MiniPosition.Value.X + 110, config.MiniPosition.Value.Y + 45); Frame();
+        Check(saves > notificationsBeforeDrag, "UI persistence: active drag marks changed before mouse release");
+        persistence.Dispose();
+        Check(settingsFile.Load(() => new()).Value.MiniPosition == config.MiniPosition, "UI persistence: shutdown during active drag flushes its latest position");
+        io.AddMouseButtonEvent(0, false); Frame();
+        var hostCompatible = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(settingsFile.Path), new Newtonsoft.Json.JsonSerializerSettings { TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto });
+        Check(hostCompatible is Configuration restoredConfig && restoredConfig.MiniPosition == config.MiniPosition,
+            "UI persistence: saved JSON remains readable by the host's typed configuration loader");
+        Console.WriteLine($"UI PERSISTENCE: commits={settingsFile.Commits}; logical payload bytes={settingsFile.LogicalBytesWritten}");
         ImGui.DestroyContext(); player.Dispose();
     }
     static void Check(bool value, string label) { if (!value) throw new Exception(label); Console.WriteLine("PASS: " + label); }

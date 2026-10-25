@@ -115,5 +115,11 @@
   "IncludeReusedTracks": "Wiederverwendete Titel in späteren Erweiterungen anzeigen",
   "IncludeReusedHelp": "Wenn deaktiviert, erscheint jede Audiodatei nur in ihrer frühesten bekannten Erweiterung. Alle Erweiterungen, Favoriten, Wiedergabelisten und zuletzt gehörte Titel bleiben unverändert.",
   "Recent": "Zuletzt gehört",
-  "RecentHelp": "Die letzten 30 Titel dieser Sitzung. Wird beim Ausloggen geleert."
+  "RecentHelp": "Die letzten 30 Titel dieser Sitzung. Wird beim Ausloggen geleert.",
+  "SaveInfo": "Änderungen gelten sofort. Geänderte Einstellungen werden alle 60 Sekunden sowie beim Ausloggen oder normalen Beenden gespeichert.",
+  "SettingsRecovered": "Einstellungen wurden aus einer Sicherung wiederhergestellt. Die beschädigte Datei bleibt beim Speichern unter anderem Namen erhalten.",
+  "SaveFailed": "Speichern fehlgeschlagen. Ungespeicherte Änderungen bleiben erhalten. Speicherplatz und Zugriffsrechte prüfen.",
+  "SaveStopped": "Automatisches Speichern nach drei Fehlern angehalten. Ursache beheben und erneut speichern.",
+  "RetrySave": "Speichern wiederholen",
+  "BackupCleanupFailed": "Die Einstellungen sind gespeichert, alte Sicherungen konnten jedoch nicht entfernt werden. Dateisperren und Zugriffsrechte prüfen und erneut versuchen."
 }
