@@ -1,8 +1,20 @@
 # BGMPlayer publication state
 
-Updated: 2026-10-18 (JST).
+Updated: 2026-10-25 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
+
+## 2026-10-25 — BGMPlayer 1.1.1.0 public preview
+
+- Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.1.1.0
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v1.1.1.0/AetherRadio-1.1.1.0.zip
+- Source/tag: `97e437493b395739afc2b59a165f6c4a78476341`; ZIP 1,387,473 bytes, 10 files; SHA-256 `FF56CF3B4B75D3674FC377CCBD1956A4033CF6A48F488129CDCB47126510DB98`.
+- Main transport now toggles the mini-player beside Repeat, with blue indicating visible. Existing seven-language show/hide tooltips and saved preference are reused.
+- Settings use changed-only 60-second saves, logout/normal-exit flush, validated atomic replacement, three valid backups and bounded retries. Oversized-primary recovery preserves the damaged original; disposed players reject late playback calls; direct native BGM scene changes retain reset/fade/volume restoration state.
+- Clean Release: zero warnings/errors; 238 managed checks, 256 with offline game data, and 90 isolated ImGui checks passed. All 1,293 installed tracks remain selectable. Seven-language toggle interactions cause zero immediate writes; unchanged navigation causes zero catalogue reads. Synthetic UI: three commits / 1,348 logical payload bytes including fixture.
+- Anonymous public repository/icon/ZIP verified (HTTP 200; image/png); downloaded ZIP hash and packaged manifest/license notices matched. Release is public, prerelease=true, draft=false.
+- Shared index commit: `ce4fd5551f5f1c47a10bf9ca5d051e830e77b885`. Pinned anonymous index and connector verify 1.1.1.0 and all 14 entries; 13 other entries preserved. Normal raw main initially returned cached 1.1.0.0.
+- Publication follows the project-wide standing authorization dated 2026-10-23. GitHub connector used for source/index/records; CLI only for unsupported Release/assets and local Git synchronization. No production configuration or installed DLL replaced. Live-game audio/lifecycle/font-atlas/IME/DPI and physical SSD writes remain unverified.
 
 ## 2026-10-18 — BGMPlayer 1.1.0.0 public preview
 
