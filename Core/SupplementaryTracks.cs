@@ -33,13 +33,21 @@ public sealed record PlaybackRoute(ushort NativeId, string? ExpectedPath = null,
 // Reuse the game's BGM lifecycle, replacing only the selected carrier's local path.
 public sealed class PlaybackRouter(IEnumerable<Track> tracks)
 {
-    private readonly Track[] carriers = tracks.Where(t => t.OrchestrionId == null && t.Id > 0 && SupplementaryTracks.IsMusicPath(t.Path))
-        .OrderBy(t => t.Id).Take(2).ToArray();
-    public PlaybackRoute Resolve(Track track, ushort currentNative)
+    public static bool IsCarrier(Track track)
+    {
+        var name = track.Path[(track.Path.LastIndexOf('/') + 1)..];
+        return track.OrchestrionId == null && track.Id > 1 && SupplementaryTracks.IsMusicPath(track.Path)
+            && !name.Equals("BGM_Null.scd", StringComparison.OrdinalIgnoreCase)
+            && !name.StartsWith("BGM_System_", StringComparison.OrdinalIgnoreCase);
+    }
+    private readonly Track[] carriers = tracks.Where(IsCarrier).OrderBy(t => t.Id).ToArray();
+    public PlaybackRoute Resolve(Track track, ushort currentNative, IEnumerable<ushort>? activeNativeIds = null)
     {
         if (track.OrchestrionId == null) return new(track.Id);
         if (!SupplementaryTracks.IsMusicPath(track.Path)) throw new PlaybackException("TrackUnavailable");
-        var carrier = carriers.FirstOrDefault(t => t.Id != currentNative) ?? throw new PlaybackException("EngineNotReady");
+        var unavailable = activeNativeIds?.ToHashSet() ?? [];
+        unavailable.Add(currentNative);
+        var carrier = carriers.FirstOrDefault(t => !unavailable.Contains(t.Id)) ?? throw new PlaybackException("EngineNotReady");
         return new(carrier.Id, carrier.Path, track.Path);
     }
     public static bool ShouldReplace(PlaybackRoute? route, ushort sceneId, string requestedPath) =>

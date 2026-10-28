@@ -122,5 +122,6 @@
   "SaveStopped": "Automatisches Speichern nach drei Fehlern angehalten. Ursache beheben und erneut speichern.",
   "RetrySave": "Speichern wiederholen",
   "BackupCleanupFailed": "Die Einstellungen sind gespeichert, alte Sicherungen konnten jedoch nicht entfernt werden. Dateisperren und Zugriffsrechte prüfen und erneut versuchen.",
-  "OrchestrionId": "Orchestrion-ID: {0}"
+  "OrchestrionId": "Orchestrion-ID: {0}",
+  "SupplementPlaybackFailed": "Der zusätzliche Titel hat den Audiolader nicht erreicht. Die Spielmusik wurde wiederhergestellt. Wähle den Titel erneut."
 }

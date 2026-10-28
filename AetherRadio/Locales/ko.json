@@ -122,5 +122,6 @@
   "SaveStopped": "저장에 3회 실패하여 자동 저장을 중지했습니다. 원인을 해결한 후 다시 저장하세요.",
   "RetrySave": "저장 재시도",
   "BackupCleanupFailed": "설정은 저장했지만 오래된 백업을 정리하지 못했습니다. 파일 잠금과 접근 권한을 확인한 후 다시 시도하세요.",
-  "OrchestrionId": "오케스트리온 ID: {0}"
+  "OrchestrionId": "오케스트리온 ID: {0}",
+  "SupplementPlaybackFailed": "추가 곡의 오디오 로딩을 확인할 수 없어 게임 BGM으로 돌아갔습니다. 곡을 다시 선택해 주세요."
 }

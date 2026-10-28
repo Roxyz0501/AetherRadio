@@ -210,3 +210,5 @@ The main transport row includes a mini-player toggle next to Repeat. Blue means 
 The catalogue also reads OrchestrionPath, even when its title or content association is absent. Only installed music files referenced by BGM or OrchestrionPath are included; unknown files outside those tables are not discovered by scanning hashed archives. No audio files are exported or distributed.
 
 Supplementary songs retain stable plugin-only playlist IDs. Playback substitutes their installed path in the local SoundManager.PlayBGMSound call for an existing BGM scene carrier; synthetic IDs are never sent to SetBGM. This uses the game's BGM playback lifetime and music-only volume control. OrchestrionManager.PlayTrack/PlaySample and server-bound functions are not used. The new path playback needs live-game audio acceptance, including transitions, looping, volume and stop/logout restoration.
+
+Version 1.1.3 excludes silent and login-screen carrier files and currently active/fading scene IDs. If a supplementary selection does not reach the local audio loader within eight seconds, playback stops with an error; this check does not certify audible output.

@@ -122,5 +122,6 @@
   "SaveStopped": "保存连续失败3次，已停止自动保存。解决原因后请重试保存。",
   "RetrySave": "重试保存",
   "BackupCleanupFailed": "设置已保存，但无法清理旧备份。请检查文件锁定和访问权限，然后重试。",
-  "OrchestrionId": "管弦乐琴 ID：{0}"
+  "OrchestrionId": "管弦乐琴 ID：{0}",
+  "SupplementPlaybackFailed": "未能确认附加曲目已进入音频加载流程，已恢复游戏音乐。请重新选择曲目。"
 }

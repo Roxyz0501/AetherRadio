@@ -1,13 +1,11 @@
-BGMPlayer 1.1.2.0
+BGMPlayer 1.1.3.0
 
-- 通常BGM表に加え、オーケストリオンのファイル表からもインストール済みの曲を拾うようにしました。
-- 「闘う者達」「更に闘う者達」を追加。「闘う者たち」でも検索できます。コンテンツとの対応がない曲は「その他」から選べます。
-- 曲名が未登録でも、ファイル表と実ファイルがある曲は一覧に含めます。お気に入り・マイリストにも対応しています。
-- 追加曲は端末内のBGM再生処理で扱います。オーケストリオンのサーバー向け再生要求は使用しません。
+- 追加曲の再生時に、無音用のBGM_Nullを選んでしまう不具合を修正しました。タイトル・ランチャー・キャラクター選択画面用の曲も除外します。
+- ゲームが現在再生中・切り替え中のBGMと重ならない曲を使うようにしました。
+- 追加曲が8秒以内に音声読み込み処理へ到達しない場合は、再生中の表示を続けずに停止してエラーを表示します。
 
-検証環境では全2,179曲（追加886曲）を収集できました。Releaseビルドは警告・エラーなし。248 managed checks / 269 with offline game data and 92 isolated ImGui checks passed.
-追加曲の実ゲーム内での音出し、曲切り替え、ループ、停止・ログアウト時の音声復帰は未確認です。公開プレビューとして配布します。
+Clean Release: zero warnings/errors. 251 managed checks / 273 with offline game data and 92 isolated ImGui checks passed. 実データで初回・連続選曲とも無音ファイルを使わないことを確認しました。実ゲーム内の音出しは未確認のため公開プレビューです。
 
 https://raw.githubusercontent.com/Roxyz0501/DalamudPluginRepo/main/repo.json
 
-Includes MIT-licensed song metadata from OrchestrionPlugin by Meli, perchbird and contributors. Full notice and license are included in the ZIP. Game audio files are not included.
+Includes MIT-licensed song metadata from OrchestrionPlugin by Meli, perchbird and contributors. Notices and license are included; game audio is not bundled.

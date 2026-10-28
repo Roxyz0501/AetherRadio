@@ -20,6 +20,8 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
     private readonly Catalog catalog;
     private PlaybackRouter? router;
     private PlaybackRoute? route;
+    private long replacementStarted;
+    private bool replacementObserved;
     private readonly object gate = new();
     private nint owner;
     private int ownCallDepth;
@@ -63,7 +65,14 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
             if (!IsReady(system) || SoundManager.Instance() == null)
                 throw new PlaybackException("EngineNotReady");
             if (!catalog.Tracks.TryGetValue(id, out var track)) throw new PlaybackException("TrackUnavailable");
-            var nextRoute = (router ??= new PlaybackRouter(catalog.Tracks.Values)).Resolve(track, system->Scenes[0].BgmId);
+            var activeIds = new HashSet<ushort>();
+            for (var i = 0; i < system->NumScenes; i++)
+            {
+                var scene = system->Scenes[i];
+                activeIds.Add(scene.BgmId); activeIds.Add(scene.PlayingBgmId); activeIds.Add(scene.PreviousBgmId);
+            }
+            foreach (var request in pending.Values) activeIds.Add(request.Id);
+            var nextRoute = (router ??= new PlaybackRouter(catalog.Tracks.Values)).Resolve(track, system->Scenes[0].BgmId, activeIds);
             if (nextRoute.ReplacementPath != null && pathHook == null) throw new PlaybackException("ApiUnavailable");
             if (Current != null && owner != (nint)system) Release(ReleaseMode.Discard);
             if (Current == null)
@@ -86,6 +95,8 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
                 finally { ownCallDepth--; }
             }
             route = nextRoute;
+            replacementObserved = false;
+            replacementStarted = Environment.TickCount64;
             if (route.ReplacementPath != null) pathHook!.Enable(); else pathHook?.Disable();
             Current = id;
             volume.Apply(VolumePercent);
@@ -143,6 +154,8 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
                     Volume: scene.InitialVolume, Reset: scene.BgmId == 0);
                 ApplySelection(selectedRoute.NativeId);
             }
+            if (route?.ReplacementPath != null && !replacementObserved && Environment.TickCount64 - replacementStarted >= 8_000)
+                throw new PlaybackException("SupplementPlaybackFailed");
             if (Current != null) volume.Apply(VolumePercent);
         }
     }
@@ -156,7 +169,12 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
                 PlaybackRouter.ShouldReplace(route, system->Scenes[0].BgmId, path.ToString()))
             {
                 var bytes = Encoding.UTF8.GetBytes(route!.ReplacementPath! + "\0");
-                fixed (byte* replacement = bytes) return pathHook!.Original(manager, replacement);
+                fixed (byte* replacement = bytes)
+                {
+                    var sound = pathHook!.Original(manager, replacement);
+                    replacementObserved = sound != null;
+                    return sound;
+                }
             }
             return pathHook!.Original(manager, path);
         }

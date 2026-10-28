@@ -122,5 +122,6 @@
   "SaveStopped": "儲存連續失敗3次，已停止自動儲存。解決原因後請重試儲存。",
   "RetrySave": "重試儲存",
   "BackupCleanupFailed": "設定已儲存，但無法清理舊備份。請檢查檔案鎖定和存取權限，然後重試。",
-  "OrchestrionId": "管弦樂琴 ID：{0}"
+  "OrchestrionId": "管弦樂琴 ID：{0}",
+  "SupplementPlaybackFailed": "未能確認附加曲目已進入音訊載入流程，已恢復遊戲音樂。請重新選擇曲目。"
 }

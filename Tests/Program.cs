@@ -89,6 +89,13 @@ if (args.Length > 0)
     var originalPaths = catalogue.Tracks.Values.Where(t => t.OrchestrionId == null).Select(t => t.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
     var extraPaths = paths.Select(s => s.File.ToString()).Where(p => p != null && SupplementaryTracks.IsMusicPath(p) && !originalPaths.Contains(p) && game.FileExists(p)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
     Check(catalogue.Tracks.Count == expected + extraPaths, "All installed orchestrion-only music paths are included");
+    var actualSong = catalogue.Tracks.Values.Single(t => t.Title == "闘う者達");
+    var actualRouter = new PlaybackRouter(catalogue.Tracks.Values);
+    var actualRoute = actualRouter.Resolve(actualSong, 0);
+    var subsequentRoute = actualRouter.Resolve(actualSong, actualRoute.NativeId);
+    Check(actualRoute.NativeId > 4 && subsequentRoute.NativeId > 4 && actualRoute.NativeId != subsequentRoute.NativeId,
+        "Installed carrier regression: first and subsequent supplementary playback exclude BGM_Null and title files");
+    Console.WriteLine($"CARRIERS: {actualRoute.NativeId} {actualRoute.ExpectedPath}; {subsequentRoute.NativeId} {subsequentRoute.ExpectedPath}");
     foreach (var name in new[] { "闘う者達", "更に闘う者達" })
         Check(catalogue.Tracks.Values.Any(t => t.Title == name && t.OrchestrionId != null && t.Locations.Any(l => l.ExpansionId == uint.MaxValue)), $"Requested supplementary track is selectable under Other: {name}");
     Check(catalogue.Tracks.Values.All(x => x.Locations.Count > 0), "Every track has a category, including Other");

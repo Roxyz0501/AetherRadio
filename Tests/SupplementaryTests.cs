@@ -5,7 +5,7 @@ static class SupplementaryTests
 {
     public static void Run(Action<bool, string> check)
     {
-        var tracks = new Dictionary<ushort, Track> { [1] = new(1, "music/main.scd", "Main"), [2] = new(2, "music/second.scd", "Second") };
+        var tracks = new Dictionary<ushort, Track> { [5] = new(5, "music/main.scd", "Main"), [6] = new(6, "music/second.scd", "Second") };
         var checks = 0;
         SupplementaryTracks.Add(tracks, [(857u, "music/orch/907.scd", "闘う者達"), (858u, "music/orch/908.scd", "更に闘う者達"),
             (859u, "music/orch/missing.scd", "Missing"), (860u, "music/main.scd", "Duplicate"), (861u, "MUSIC/ORCH/907.SCD", "Duplicate"),
@@ -21,14 +21,26 @@ static class SupplementaryTests
         SupplementaryTracks.Add(tracks, [(857u, song.Path, song.Title)], _ => throw new Exception("Unexpected repeated lookup"));
         check(tracks.Count == 4 && tracks[persistedId] == song, "Supplement: repeated collection preserves stable playlist IDs");
         var router = new PlaybackRouter(tracks.Values);
-        var route = router.Resolve(song, 1);
-        check(route.NativeId == 2 && route.ReplacementPath == song.Path && route.NativeId != song.Id, "Routing: plugin-only song ID never reaches SetBGM");
+        var route = router.Resolve(song, 5);
+        check(route.NativeId == 6 && route.ReplacementPath == song.Path && route.NativeId != song.Id, "Routing: plugin-only song ID never reaches SetBGM");
         var next = router.Resolve(tracks[(ushort)(SupplementaryTracks.IdBase + 858)], route.NativeId);
-        check(next.NativeId == 1 && next.ReplacementPath != route.ReplacementPath, "Routing: consecutive supplementary songs alternate carrier IDs");
-        check(PlaybackRouter.ShouldReplace(route, 2, "MUSIC/SECOND.SCD") && !PlaybackRouter.ShouldReplace(route, 1, "music/second.scd") &&
-            !PlaybackRouter.ShouldReplace(route, 2, "music/other.scd") && !PlaybackRouter.ShouldReplace(null, 2, "music/second.scd"),
+        check(next.NativeId == 5 && next.ReplacementPath != route.ReplacementPath, "Routing: consecutive supplementary songs alternate carrier IDs");
+        check(PlaybackRouter.ShouldReplace(route, 6, "MUSIC/SECOND.SCD") && !PlaybackRouter.ShouldReplace(route, 5, "music/second.scd") &&
+            !PlaybackRouter.ShouldReplace(route, 6, "music/other.scd") && !PlaybackRouter.ShouldReplace(null, 6, "music/second.scd"),
             "Routing: replacement matches only the selected scene and carrier path");
-        check(router.Resolve(tracks[1], 2) == new PlaybackRoute(1), "Routing: ordinary songs retain their original native IDs");
+        check(router.Resolve(tracks[5], 6) == new PlaybackRoute(5), "Routing: ordinary songs retain their original native IDs");
+        var candidates = new[] {
+            new Track(1, "music/ffxiv/BGM_Null.scd", "Silent"),
+            new Track(2, "music/ffxiv/BGM_System_Title.scd", "Title"),
+            new Track(3, "music/ffxiv/BGM_System_Launcher.scd", "Launcher"),
+            new Track(4, "music/ffxiv/BGM_System_Chara.scd", "Character"), tracks[5], tracks[6],
+            new Track(7, "music/third.scd", "Third"), new Track(8, "music/ffxiv/bgm_null.scd", "Silent alias") };
+        var filtered = new PlaybackRouter(candidates);
+        check(filtered.Resolve(song, 0).NativeId == 5, "Routing: first supplementary selection cannot use silent or login-screen carriers");
+        check(filtered.Resolve(song, 0, [5, 6]).NativeId == 7, "Routing: playing, pending and fading scene IDs are excluded");
+        var unavailable = false;
+        try { filtered.Resolve(song, 5, [6, 7]); } catch (PlaybackException) { unavailable = true; }
+        check(unavailable, "Routing: exhausted carriers fail closed instead of falling back to silence");
         var collision = new Dictionary<ushort, Track> { [persistedId] = new(persistedId, "music/real.scd", "Native") };
         SupplementaryTracks.Add(collision, [(857u, song.Path, song.Title)], _ => true);
         check(collision[persistedId].OrchestrionId == null && collision.Count == 1, "Supplement: native ID collisions never overwrite an existing song");
