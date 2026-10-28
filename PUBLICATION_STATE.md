@@ -4,6 +4,19 @@ Updated: 2026-10-28 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
+
+## 2026-10-28 — BGMPlayer 1.2.0.0 seek controls
+
+- Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.2.0.0
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v1.2.0.0/AetherRadio-1.2.0.0.zip
+- Source/tag: `88409dca83e0b24fb23f0fad14c2c0e49b445e23`; ZIP 1,550,871 bytes, 15 files; SHA-256 `8213E7D455EAE57590DBE90A17CA20168965A55269E932A4FE5F70D00C93B77E`.
+- Main and mini seek bars display sample position/duration and commit on release. Restarting a track cancels stale drag state. Single-stream Ogg music decodes in memory with NVorbis 0.10.5 and NAudio 2.2.1 output; unsupported formats retain native playback with disabled seek. Both MIT notices and three dependency DLLs are packaged. No game audio is exported/distributed.
+- Windows default output is independent of game BGM/master/mute/background settings; README, settings and release notes disclose this. SE/voice/environment and saved game settings are unchanged. Existing local BGM ownership/muting/restoration remains; no game-packet API added.
+- Clean Release zero warnings/errors; 267 managed / 307 installed-data checks and 97 isolated ImGui checks pass. Installed rest-area BGM, 闘う者達 and 更に闘う者達 produce nonzero decoded PCM after seeking; final-page granule mismatch fallback, EOF looping, async cancellation/cleanup and zero seek-setting writes tested. Native audible output/restoration remains unverified; public preview.
+- One loader plus one replaceable pending request; no preloading or disk audio cache. One local SCD read per started load, zero data reads for seeks/volume/rendering. Retained compressed stream cap 64 MiB, initial Lumina allocation precedes the size check. Unload joins the worker. Existing settings/playlist persistence retained.
+- Anonymous repository/icon/ZIP HTTP 200; ZIP digest, manifest/version/URLs/dependencies/licenses verified. GitHub release draft=false, prerelease=true. Shared index `9bb11457feca66407de60a7a4fd9456e9f863d61`: anonymous main/pinned versions both 1.2.0.0, 14 entries; 13 other entries unchanged.
+- Published under standing project authorization. Connector used for source/index/records; CLI only for unsupported Release/assets and local Git synchronization. No installed DLL or production settings replaced.
+
 ## 2026-10-28 — BGMPlayer 1.1.3.0 silent carrier correction
 
 - Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.1.3.0
