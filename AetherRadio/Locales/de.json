@@ -121,5 +121,6 @@
   "SaveFailed": "Speichern fehlgeschlagen. Ungespeicherte Änderungen bleiben erhalten. Speicherplatz und Zugriffsrechte prüfen.",
   "SaveStopped": "Automatisches Speichern nach drei Fehlern angehalten. Ursache beheben und erneut speichern.",
   "RetrySave": "Speichern wiederholen",
-  "BackupCleanupFailed": "Die Einstellungen sind gespeichert, alte Sicherungen konnten jedoch nicht entfernt werden. Dateisperren und Zugriffsrechte prüfen und erneut versuchen."
+  "BackupCleanupFailed": "Die Einstellungen sind gespeichert, alte Sicherungen konnten jedoch nicht entfernt werden. Dateisperren und Zugriffsrechte prüfen und erneut versuchen.",
+  "OrchestrionId": "Orchestrion-ID: {0}"
 }

@@ -32,14 +32,20 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
         });
         var metadata = MetadataStore.Load();
         var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var supplementary = new List<(uint Id, string Path, string Title)>();
         Enrich("曲名", () => {
             var paths = data.GetExcelSheet<OrchestrionPath>();
-            foreach (var song in data.GetExcelSheet<Orchestrion>())
+            var songs = data.GetExcelSheet<Orchestrion>();
+            foreach (var songPath in paths)
             {
                 cancellation.ThrowIfCancellationRequested();
-                var path = paths.GetRowOrDefault(song.RowId)?.File.ToString();
-                var title = song.Name.ToString();
-                if (!string.IsNullOrWhiteSpace(path) && !string.IsNullOrWhiteSpace(title)) names.TryAdd(path, title);
+                var path = songPath.File.ToString();
+                var title = songs.GetRowOrDefault(songPath.RowId)?.Name.ToString() ?? "";
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    supplementary.Add((songPath.RowId, path, title));
+                    if (!string.IsNullOrWhiteSpace(title)) names.TryAdd(path, title);
+                }
             }
         });
         foreach (var bgm in data.GetExcelSheet<BGM>())
@@ -52,6 +58,7 @@ public sealed class Catalog(ITrackData data, System.Action<Exception, string> lo
             var title = names.GetValueOrDefault(path) ?? extra?.Title;
             Tracks.Add((ushort)bgm.RowId, new Track((ushort)bgm.RowId, path, title ?? "曲名未登録") { HasKnownTitle = title != null, MetadataSearch = extra?.SearchTerms ?? "", DurationSeconds = extra?.Seconds });
         }
+        SupplementaryTracks.Add(Tracks, supplementary, data.FileExists, cancellation);
         Enrich("フィールド分類", () => {
             foreach (var territory in data.GetExcelSheet<TerritoryType>())
             {

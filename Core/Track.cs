@@ -5,6 +5,7 @@ public sealed record Location(uint ExpansionId, string Expansion, string Categor
 public sealed class Track(ushort id, string path, string title)
 {
     public ushort Id { get; } = id;
+    public uint? OrchestrionId { get; init; }
     public string Path { get; } = path;
     public string Title { get; set; } = title;
     public bool HasKnownTitle { get; init; } = true;

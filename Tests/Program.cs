@@ -75,6 +75,7 @@ ConfigurationTests.Run(Check);
 LocalizationTests.Run(Check);
 LibraryFeatureTests.Run(Check);
 PersistenceTests.Run(Check);
+SupplementaryTests.Run(Check);
 
 if (args.Length > 0)
 {
@@ -82,7 +83,14 @@ if (args.Length > 0)
     var catalogue = new Catalog(new OfflineData(game), (e, label) => Console.WriteLine($"WARNING {label}: {e.Message}"));
     catalogue.Load();
     var expected = (game.GetExcelSheet<BGM>() ?? throw new InvalidOperationException("Missing BGM sheet")).Count(x => x.RowId is > 0 and <= ushort.MaxValue && !string.IsNullOrWhiteSpace(x.File.ToString()) && game.FileExists(x.File.ToString()));
-    Check(catalogue.Tracks.Count == expected, "Every installed nonempty BGM row is selectable");
+    Check(catalogue.Tracks.Values.Count(t => t.OrchestrionId == null) == expected, "Every installed nonempty BGM row is selectable");
+    var songs = game.GetExcelSheet<Orchestrion>()!;
+    var paths = game.GetExcelSheet<OrchestrionPath>()!;
+    var originalPaths = catalogue.Tracks.Values.Where(t => t.OrchestrionId == null).Select(t => t.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
+    var extraPaths = paths.Select(s => s.File.ToString()).Where(p => p != null && SupplementaryTracks.IsMusicPath(p) && !originalPaths.Contains(p) && game.FileExists(p)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+    Check(catalogue.Tracks.Count == expected + extraPaths, "All installed orchestrion-only music paths are included");
+    foreach (var name in new[] { "闘う者達", "更に闘う者達" })
+        Check(catalogue.Tracks.Values.Any(t => t.Title == name && t.OrchestrionId != null && t.Locations.Any(l => l.ExpansionId == uint.MaxValue)), $"Requested supplementary track is selectable under Other: {name}");
     Check(catalogue.Tracks.Values.All(x => x.Locations.Count > 0), "Every track has a category, including Other");
     Check(catalogue.Warnings.Count == 0, "All catalogue enrichment sheets loaded");
     Check(catalogue.Tracks.Values.Any(x => x.Locations.Any(l => l.Category == "フィールド")), "Field BGM mapping is populated");
@@ -99,7 +107,7 @@ if (args.Length > 0)
         using var localizedGame = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = language, CacheFileResources = false });
         var localizedCatalog = new Catalog(new OfflineData(localizedGame), (e, label) => Console.WriteLine($"WARNING {label}: {e.Message}"));
         localizedCatalog.Load();
-        Check(localizedCatalog.Tracks.Count == expected && localizedCatalog.Warnings.Count == 0, $"All tracks load with official {language} game data");
+        Check(localizedCatalog.Tracks.Count == expected + extraPaths && localizedCatalog.Warnings.Count == 0, $"All tracks load with official {language} game data");
         // Inferred title matches may differ across official locales; direct associations must match.
         var direct = catalogue.Tracks.Values.SelectMany(t => t.Locations.Where(l => !l.Inferred && l.ExpansionId != uint.MaxValue).Select(l => $"{t.Id}:{l.ExpansionId}:{l.Category}")).Distinct().Order();
         var translated = localizedCatalog.Tracks.Values.SelectMany(t => t.Locations.Where(l => !l.Inferred && l.ExpansionId != uint.MaxValue).Select(l => $"{t.Id}:{l.ExpansionId}:{l.Category}")).Distinct().Order();

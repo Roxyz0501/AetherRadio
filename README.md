@@ -15,7 +15,8 @@ FFXIVのBGMを選んで再生するDalamudプラグインです。作者: **Roxy
 - 最近再生した30曲の一覧。ログアウトするとクリアします。
 - ミニプレイヤーからゲームBGMへ復帰、再生中の曲をお気に入りへ登録。
 - 曲一覧はページ送りなしのスクロール表示。画面内の行だけを描画します。
-- インストール済みBGM表の全ファイルを列挙。データ更新で増えた曲もIDで表示。
+- BGM表とオーケストリオンのファイル表から、インストール済みの曲を収集。コンテンツとの対応がない曲は「その他」に表示。曲名未登録のファイルも対象です。
+- 「闘う者達」「更に闘う者達」など、通常BGM表にないオーケストリオン曲にも対応。「闘う者たち」でも検索できます。
 - 日本語曲名・BGM ID・場所・メタデータによる検索。
 - お気に入り、複数マイリスト、名前変更、曲の追加／削除／並べ替え。
 - 重複しないシャッフル、前／次、リストリピート、1曲の継続再生。
@@ -203,3 +204,9 @@ BGMシーン優先度の理解にも同プロジェクトの実装を参照し�
 任意の開発支援: [Roxyz0501 / Ko-fi](https://ko-fi.com/roxyz0501)
 
 The main transport row includes a mini-player toggle next to Repeat. Blue means the mini-player is visible; its tooltip follows the selected UI language.
+
+### Supplementary local tracks (1.1.2.0)
+
+The catalogue also reads OrchestrionPath, even when its title or content association is absent. Only installed music files referenced by BGM or OrchestrionPath are included; unknown files outside those tables are not discovered by scanning hashed archives. No audio files are exported or distributed.
+
+Supplementary songs retain stable plugin-only playlist IDs. Playback substitutes their installed path in the local SoundManager.PlayBGMSound call for an existing BGM scene carrier; synthetic IDs are never sent to SetBGM. This uses the game's BGM playback lifetime and music-only volume control. OrchestrionManager.PlayTrack/PlaySample and server-bound functions are not used. The new path playback needs live-game audio acceptance, including transitions, looping, volume and stop/logout restoration.

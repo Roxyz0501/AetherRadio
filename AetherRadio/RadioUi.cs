@@ -299,7 +299,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.EndDisabled();
         if (ImGui.IsItemHovered())
         {
-            ImGui.BeginTooltip(); ImGui.TextUnformatted(text.Title(track)); ImGui.TextUnformatted($"BGM ID: {track.Id}");
+            ImGui.BeginTooltip(); ImGui.TextUnformatted(text.Title(track)); ImGui.TextUnformatted(track.OrchestrionId is { } songId ? text.Format("OrchestrionId", songId) : $"BGM ID: {track.Id}");
             foreach (var l in track.Locations) ImGui.TextUnformatted($"{text.Expansion(l)} / {text.Genre(l.Category)} / {text.Area(l)}{(l.Inferred ? text["Inferred"] : "")}");
             ImGui.TextColored(Muted, track.Path); ImGui.EndTooltip();
         }

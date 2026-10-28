@@ -1,4 +1,6 @@
 using Dalamud.Hooking;
+using System.Text;
+using InteropGenerator.Runtime;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Sound;
@@ -6,7 +8,7 @@ using AetherRadio.Core;
 
 namespace AetherRadio;
 
-// Hooks terminate in BGMSystem; transient volume uses SoundManager's BGM buses.
+// Hooks terminate in BGMSystem and local PlayBGMSound; volume uses music buses.
 // No networking, actions,
 // chat commands, event packets or server-bound game functions are used.
 public sealed unsafe class BgmPlayback : IBgmPlayback
@@ -14,6 +16,10 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
     private readonly Hook<BGMSystem.Delegates.SetBGM> setHook;
     private readonly Hook<BGMSystem.Delegates.ResetBGM> resetHook;
     private readonly Dictionary<uint, Request> pending = [];
+    private Hook<SoundManager.Delegates.PlayBGMSound>? pathHook;
+    private readonly Catalog catalog;
+    private PlaybackRouter? router;
+    private PlaybackRoute? route;
     private readonly object gate = new();
     private nint owner;
     private int ownCallDepth;
@@ -26,9 +32,10 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
     private readonly record struct Request(ushort Id, uint Scene, byte A3 = 0, bool Fade = false,
         uint Out = 0, uint In = 0, uint Start = 0, byte A8 = 0, byte A9 = 0, float Volume = 1, bool Reset = false);
 
-    public BgmPlayback(IGameInteropProvider interop, Func<bool> isLoggedIn)
+    public BgmPlayback(IGameInteropProvider interop, Func<bool> isLoggedIn, Catalog catalog)
     {
         this.isLoggedIn = isLoggedIn;
+        this.catalog = catalog;
         var setAddress = (nint)BGMSystem.MemberFunctionPointers.SetBGM;
         var resetAddress = (nint)BGMSystem.MemberFunctionPointers.ResetBGM;
         if (setAddress == 0 || resetAddress == 0 || BGMSystem.StaticAddressPointers.ppInstance == null)
@@ -36,6 +43,13 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
         setHook = interop.HookFromAddress<BGMSystem.Delegates.SetBGM>(setAddress, OnSet);
         try { resetHook = interop.HookFromAddress<BGMSystem.Delegates.ResetBGM>(resetAddress, OnReset); }
         catch { setHook.Dispose(); throw; }
+        try
+        {
+            var address = (nint)SoundManager.MemberFunctionPointers.PlayBGMSound;
+            if (address != 0) pathHook = interop.HookFromAddress<SoundManager.Delegates.PlayBGMSound>(address, OnPlayBgmSound);
+        }
+        catch { resetHook.Dispose(); setHook.Dispose(); throw; }
+
     }
 
     public void Play(ushort id)
@@ -48,6 +62,9 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
             var system = BGMSystem.Instance();
             if (!IsReady(system) || SoundManager.Instance() == null)
                 throw new PlaybackException("EngineNotReady");
+            if (!catalog.Tracks.TryGetValue(id, out var track)) throw new PlaybackException("TrackUnavailable");
+            var nextRoute = (router ??= new PlaybackRouter(catalog.Tracks.Values)).Resolve(track, system->Scenes[0].BgmId);
+            if (nextRoute.ReplacementPath != null && pathHook == null) throw new PlaybackException("ApiUnavailable");
             if (Current != null && owner != (nint)system) Release(ReleaseMode.Discard);
             if (Current == null)
             {
@@ -61,11 +78,20 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
                 setHook.Enable();
                 resetHook.Enable();
             }
+            if (route?.ReplacementPath != null)
+            {
+                // Invalidate the previous scene before reusing a carrier as a real song.
+                ownCallDepth++;
+                try { resetHook.Original(system, 0); }
+                finally { ownCallDepth--; }
+            }
+            route = nextRoute;
+            if (route.ReplacementPath != null) pathHook!.Enable(); else pathHook?.Disable();
             Current = id;
             volume.Apply(VolumePercent);
             // Scene 0 has highest priority. Other scenes continue tracking normal
             // game state, so stopping immediately reveals the current territory/duty.
-            ApplySelection(id);
+            ApplySelection(route.NativeId);
         }
     }
 
@@ -107,7 +133,7 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
             var system = BGMSystem.Instance();
             if (!isLoggedIn()) { ResetSession(); return; }
             if (Current != null && (owner != (nint)system || !IsReady(system))) { Release(ReleaseMode.Discard); return; }
-            if (Current is { } id && IsReady(system) && system->Scenes[0].BgmId != id)
+            if (Current != null && route is { } selectedRoute && IsReady(system) && system->Scenes[0].BgmId != selectedRoute.NativeId)
             {
                 if (!Locked) { Stop(); return; }
                 // Catch direct local engine changes which bypass SetBGM/ResetBGM.
@@ -115,9 +141,24 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
                 pending[0] = new Request(scene.BgmId, 0, Fade: scene.EnableCustomFade,
                     Out: scene.FadeOutTime, In: scene.FadeInTime, Start: scene.FadeInStartTime,
                     Volume: scene.InitialVolume, Reset: scene.BgmId == 0);
-                ApplySelection(id);
+                ApplySelection(selectedRoute.NativeId);
             }
             if (Current != null) volume.Apply(VolumePercent);
+        }
+    }
+
+    private SoundData* OnPlayBgmSound(SoundManager* manager, CStringPointer path)
+    {
+        lock (gate)
+        {
+            var system = BGMSystem.Instance();
+            if (!disposed && Current != null && isLoggedIn() && manager == SoundManager.Instance() && owner == (nint)system && IsReady(system) &&
+                PlaybackRouter.ShouldReplace(route, system->Scenes[0].BgmId, path.ToString()))
+            {
+                var bytes = Encoding.UTF8.GetBytes(route!.ReplacementPath! + "\0");
+                fixed (byte* replacement = bytes) return pathHook!.Original(manager, replacement);
+            }
+            return pathHook!.Original(manager, path);
         }
     }
 
@@ -143,12 +184,14 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
         lock (gate)
         {
             if (disposed) return;
-            var selected = Current;
+            var selected = Current == null ? (ushort?)null : route?.NativeId;
             var previousOwner = owner;
+            var wasReplacement = route?.ReplacementPath != null;
             var requests = mode == ReleaseMode.Restore ? pending.Values.OrderBy(x => x.Scene).ToArray() : [];
             // Clear ownership before native cleanup; failures must not leave a
             // stale lock, restoration request or session for the next login.
             Current = null;
+            route = null;
             pending.Clear();
             owner = 0;
             List<Exception>? errors = null;
@@ -157,6 +200,7 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
                 try { action(); }
                 catch (Exception e) { (errors ??= []).Add(e); }
             }
+            if (pathHook != null) Attempt(pathHook.Disable);
             Attempt(setHook.Disable);
             Attempt(resetHook.Disable);
             Attempt(volume.Restore);
@@ -173,6 +217,7 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
                 }
                 else
                 {
+                    if (wasReplacement && system->Scenes[0].BgmId == selected.Value) resetHook.Original(system, 0);
                     foreach (var r in requests)
                     {
                         if (r.Scene >= system->NumScenes) continue;
@@ -194,8 +239,8 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
             finally
             {
                 disposed = true;
-                try { resetHook.Dispose(); }
-                finally { setHook.Dispose(); }
+                try { pathHook?.Dispose(); }
+                finally { try { resetHook.Dispose(); } finally { setHook.Dispose(); } }
             }
         }
     }

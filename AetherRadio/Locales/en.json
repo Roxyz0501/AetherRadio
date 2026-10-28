@@ -121,5 +121,6 @@
   "SaveFailed": "Settings could not be saved. Unsaved changes are retained. Check free space and access permissions.",
   "SaveStopped": "Autosave stopped after three failures. Resolve the cause, then choose Retry save.",
   "RetrySave": "Retry save",
-  "BackupCleanupFailed": "Settings are saved, but old backups could not be pruned. Check file locks and access permissions, then retry."
+  "BackupCleanupFailed": "Settings are saved, but old backups could not be pruned. Check file locks and access permissions, then retry.",
+  "OrchestrionId": "Orchestrion ID: {0}"
 }

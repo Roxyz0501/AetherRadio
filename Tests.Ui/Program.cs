@@ -192,6 +192,12 @@ unsafe partial class Program
         config.Favorites.Remove(selected.Id); config.ShowReusedTracks = true; exp.SetValue(ui, null); mode.SetValue(ui, 0);
         Check((data.SheetReads, data.FileChecks) == initialReads && saves == unchangedSaves, "History updates and duplicate filtering cause zero catalogue reads or change notifications");
         Check(initialReads.SheetReads <= 12, "Initial sheet requests stay within the catalogue read budget");
+        search.SetValue(ui, "闘う者たち"); exp.SetValue(ui, uint.MaxValue); refresh.Invoke(ui, [null]);
+        var foundSupplement = ((List<Track>)visibleField.GetValue(ui)!).Single(t => t.Title == "闘う者達");
+        Check(foundSupplement.OrchestrionId == 857, "Supplementary song is searchable by hiragana under Other");
+        player.Start(foundSupplement, [foundSupplement.Id]);
+        Check(player.Current == foundSupplement && player.IsPlaying, "Supplementary selection reaches the player and queue");
+        search.SetValue(ui, ""); exp.SetValue(ui, null); refresh.Invoke(ui, [null]);
         // Mini-player remains operable with a longer translation.
         config.Language = "de";
         typeof(RadioUi).GetField("open", flags)!.SetValue(ui, false); Frame();
