@@ -1,8 +1,20 @@
 # BGMPlayer publication state
 
-Updated: 2026-10-25 (JST).
+Updated: 2026-10-28 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
+
+## 2026-10-28 — BGMPlayer 1.1.2.0 supplementary installed tracks
+
+- Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.1.2.0
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v1.1.2.0/AetherRadio-1.1.2.0.zip
+- Source/tag: `a397996e32487214964990866394ef7d8b6391e2`; ZIP 1,390,861 bytes, 10 files; SHA-256 `EB6FA5EAB30218A17A6AFAACF53A62F611385C9D125C97D20B8CB3405FD45913`.
+- Catalogue now reads installed music from OrchestrionPath as well as BGM, including untitled or content-unassigned rows, with stable supplementary IDs and path deduplication. 闘う者達 (row 857) and 更に闘う者達 (row 858) are available under Other; hiragana search is supported. No game audio is distributed.
+- Supplementary playback uses scoped local SoundManager.PlayBGMSound path substitution under the existing BGM scene lifecycle. Plugin-only IDs never go to SetBGM; OrchestrionManager.PlayTrack (which may send server packets) and PlaySample are not called. Music-only volume and cleanup ownership retained.
+- Clean Release zero warnings/errors; 248 managed / 269 offline-data checks and 92 isolated ImGui checks pass. Installed catalogue has 2,179 tracks including 886 supplementary; initial requests: 11 sheets and 2,181 file checks, subsequent navigation reads zero. Synthetic UI persistence: three commits / 1,348 logical payload bytes including initial fixture.
+- Anonymous repository/icon/ZIP HTTP 200, icon image/png, downloaded ZIP and GitHub asset digest match; packaged version/author/URLs and license notices verified. Public prerelease, not draft.
+- Shared index commit `350643c21de5cbf6806a0db708ca969fd22016c7`; anonymous main and pinned indexes both show 1.1.2.0 with 14 entries. All 13 other entries preserved.
+- Published under standing project authorization. Connector used for source/index/ledgers, CLI only for unsupported Release/assets and local Git objects. No production settings or installed DLL replaced. Actual supplementary audio, SCD looping/bus behavior, carrier transitions, stop/logout/dispose restoration and live font-atlas/IME/DPI remain unverified; limitations are explicit in Release notes and VALIDATION.md. Unreferenced hashed archive entries are outside discovery scope.
 
 ## 2026-10-25 — BGMPlayer 1.1.1.0 public preview
 
