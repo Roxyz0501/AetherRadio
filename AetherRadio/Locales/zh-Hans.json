@@ -51,7 +51,7 @@
   "NoSelection": "未选择曲目",
   "Volume": "播放器音量",
   "Playback": "播放",
-  "VolumeInfo": "100% 为正常 BGM 音量，可提高至 200%，但不会超过游戏的音量上限。游戏音量设置和音效保持不变。",
+  "VolumeInfo": "音量可在0~200%之间调整。支持跳转的曲目在100%时使用原始音量。不会更改游戏保存的设置及音效。",
   "LockBgm": "播放时忽略游戏 BGM 切换",
   "LockInfo": "适用于副本、战斗和区域音乐。关闭后，游戏下次请求切换 BGM 时会恢复正常音乐。停止、登出或卸载插件也会解除锁定。",
   "Repeat": "循环",
@@ -123,5 +123,12 @@
   "RetrySave": "重试保存",
   "BackupCleanupFailed": "设置已保存，但无法清理旧备份。请检查文件锁定和访问权限，然后重试。",
   "OrchestrionId": "管弦乐琴 ID：{0}",
-  "SupplementPlaybackFailed": "未能确认附加曲目已进入音频加载流程，已恢复游戏音乐。请重新选择曲目。"
+  "SupplementPlaybackFailed": "未能确认附加曲目已进入音频加载流程，已恢复游戏音乐。请重新选择曲目。",
+  "AudioLoading": "正在加载…",
+  "SeekUnavailable": "此曲目无法跳转",
+  "SeekHint": "拖动以更改播放位置",
+  "AudioLoadFailed": "无法加载曲目，已恢复游戏背景音乐。",
+  "AudioOutputFailed": "音频输出失败，请检查 Windows 输出设备。",
+  "AudioSeekFailed": "无法更改播放位置。",
+  "LocalAudioInfo": "支持跳转的曲目使用 Windows 默认输出设备。请在此播放器调节音量；游戏背景音乐音量及静音设置不适用。"
 }

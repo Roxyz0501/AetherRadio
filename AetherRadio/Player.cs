@@ -14,6 +14,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     private readonly Stopwatch clock = new();
     public PlaybackQueue Queue { get; } = new() { Shuffle = config.Shuffle, Repeat = config.Repeat };
     public Track? Current { get; private set; }
+    public int PlaybackRevision { get; private set; }
     private readonly List<ushort> recent = [];
     public IReadOnlyList<ushort> Recent => recent;
     public int RecentRevision { get; private set; }
@@ -34,7 +35,16 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
     private readonly Localization text = new(() => config.Language);
     private string? errorKey;
     public string? Error { get => errorKey == null ? null : text[errorKey]; set => errorKey = value; }
-    public double Elapsed => clock.Elapsed.TotalSeconds;
+    public double Elapsed => engine?.CanSeek == true ? engine.PositionSeconds : clock.Elapsed.TotalSeconds;
+    public bool IsLoading => engine?.IsLoading == true;
+    public bool CanSeek => !disposed && IsPlaying && engine?.CanSeek == true;
+    public double Duration => engine?.DurationSeconds ?? 0;
+    public void Seek(double seconds)
+    {
+        if (!CanSeek || !CanPlay() || !double.IsFinite(seconds)) return;
+        try { engine!.Seek(seconds); }
+        catch (Exception e) { Error = "AudioSeekFailed"; log.Error(e, "Audio seek failed"); Stop(); }
+    }
     public int AdvanceSeconds => config.UseTrackDuration ? Current?.DurationSeconds ?? config.TrackSeconds : config.TrackSeconds;
 
     public void Start(Track track, IEnumerable<ushort> queue)
@@ -55,8 +65,9 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
             engine.Locked = config.LockBgm;
             engine.VolumePercent = config.VolumePercent;
             engine.Play(id);
+            PlaybackRevision++;
             Current = track;
-            Remember(id);
+            if (!engine.IsLoading) Remember(id);
             clock.Restart();
             Error = null;
         }
@@ -79,6 +90,7 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
         if (disposed) return;
         SynchronizeSession();
         clock.Stop();
+        PlaybackRevision++;
         try { engine?.Stop(); }
         catch (Exception e) { Error = "RestoreError"; log.Error(e, "Restoring game BGM failed"); }
     }
@@ -95,8 +107,17 @@ public sealed class Player(Configuration config, Catalog catalog, IBgmPlayback? 
         if (!sessionActive) { ResetSession(); return; }
         engine!.Locked = config.LockBgm;
         engine.VolumePercent = config.VolumePercent;
+        engine.Loop = !config.AutoAdvance || config.Repeat == RepeatMode.One;
+        var wasLoading = engine.IsLoading;
         engine.ValidateOwner();
-        if (IsPlaying && config.AutoAdvance && config.Repeat != RepeatMode.One && Elapsed >= AdvanceSeconds) Next(true);
+        if (wasLoading && !engine.IsLoading)
+        {
+            clock.Restart();
+            if (engine.Current != null && Current != null) Remember(Current.Id);
+        }
+        if (engine.IsLoading) return;
+        if (IsPlaying && config.AutoAdvance && config.Repeat != RepeatMode.One &&
+            (CanSeek ? engine.HasEnded || !config.UseTrackDuration && Elapsed >= AdvanceSeconds : Elapsed >= AdvanceSeconds)) Next(true);
     }
 
     public void OnLogin()

@@ -198,6 +198,22 @@ unsafe partial class Program
         player.Start(foundSupplement, [foundSupplement.Id]);
         Check(player.Current == foundSupplement && player.IsPlaying, "Supplementary selection reaches the player and queue");
         search.SetValue(ui, ""); exp.SetValue(ui, null); refresh.Invoke(ui, [null]);
+        ui.Open(); Click(250, 188); Frame();
+        var seekSaves = saves; var seeks = engine.Seeks;
+        io.AddMousePosEvent(700, 758); Frame(); io.AddMouseButtonEvent(0, true); Frame();
+        io.AddMousePosEvent(950, 758); Frame();
+        Check(engine.Seeks == seeks, "Main seek drag previews without restarting output each frame");
+        io.AddMouseButtonEvent(0, false); Frame();
+        Check(engine.Seeks == seeks + 1 && player.Elapsed > 70 && player.Elapsed < 110, "Main seek commits selected position on release");
+        io.AddMousePosEvent(700, 758); Frame(); io.AddMouseButtonEvent(0, true); Frame();
+        player.Start(foundSupplement, [foundSupplement.Id]); Frame();
+        io.AddMouseButtonEvent(0, false); Frame();
+        Check(engine.Seeks == seeks + 1, "Restarting the same track cancels an in-progress seek drag");
+        Render(ImGui.GetDrawData(), textures, Path.Combine(output, "playing-seek.bmp"));
+        typeof(RadioUi).GetField("open", flags)!.SetValue(ui, false); Frame();
+        Click(1200, 744);
+        Check(engine.Seeks == seeks + 2 && player.Elapsed > 30 && player.Elapsed < 80, "Mini seek controls the same audio position");
+        Check(saves == seekSaves && settingsFile.Commits == 1, "Seeking writes no configuration and marks nothing dirty");
         // Mini-player remains operable with a longer translation.
         config.Language = "de";
         typeof(RadioUi).GetField("open", flags)!.SetValue(ui, false); Frame();
@@ -217,7 +233,7 @@ unsafe partial class Program
         Click(1150, 848);
         Check(!player.IsPlaying && engine.Stops == stops + 1 && player.Current == selected, "Mini restore button stops the override while retaining manual resume");
         Check(saves == miniSave + 2, "Restoring game music does not mark configuration dirty");
-        io.AddMousePosEvent(1100, 670); Frame(); io.AddMouseButtonEvent(0, true); Frame();
+        io.AddMousePosEvent(1100, 646); Frame(); io.AddMouseButtonEvent(0, true); Frame();
         io.AddMousePosEvent(1000, 580); Frame(); io.AddMouseButtonEvent(0, false); Frame();
         Check(config.Corner == 0 && config.MiniPosition != null, "Localized mini header remains draggable");
         for (var i = 0; i < 5; i++) Frame();
@@ -273,6 +289,12 @@ sealed class UiPlayback : IBgmPlayback
     public bool Locked { get; set; }
     public int VolumePercent { get; set; }
     public int Stops;
+    public int Seeks;
+    public bool CanSeek => Current != null;
+    public double DurationSeconds => 120;
+    public double PositionSeconds { get; private set; }
+    public void Seek(double seconds) { PositionSeconds = seconds; Seeks++; }
+
     public void Play(ushort id) => Current = id;
     public void Stop() { Current = null; Stops++; }
     public void ResetSession() => Current = null;

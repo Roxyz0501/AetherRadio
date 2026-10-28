@@ -338,7 +338,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
     private void DrawMini()
     {
         var viewport = ImGui.GetMainViewport();
-        var size = new Vector2(420, Math.Max(218, ImGui.GetTextLineHeightWithSpacing() * 9.5f));
+        var size = new Vector2(420, Math.Max(242, ImGui.GetTextLineHeightWithSpacing() * 10.5f));
         if (config.Corner != 0)
         {
             var right = config.Corner is 2 or 4;
@@ -398,13 +398,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         ImGui.TextColored(Muted, player.Current?.Locations.FirstOrDefault() is { } location ? text.Expansion(location) : "BGMPlayer");
         ImGui.EndGroup();
         ImGui.Spacing();
-        var timeline = ImGui.GetCursorScreenPos();
-        var width = ImGui.GetContentRegionAvail().X;
-        draw.AddLine(timeline, timeline + new Vector2(width, 0), 0xff3d4549, 3);
-        // This is an advance timer, not an audio seek bar.
-        if (player.IsPlaying && config.AutoAdvance && config.Repeat != RepeatMode.One)
-            draw.AddLine(timeline, timeline + new Vector2(width * Math.Clamp((float)player.Elapsed / player.AdvanceSeconds, 0, 1), 0), ImGui.ColorConvertFloat4ToU32(Accent), 3);
-        ImGui.Dummy(new Vector2(width, 2));
+        DrawSeekBar("mini-seek");
         ImGui.BeginDisabled(!CatalogReady || !player.Available);
         if (TransportButton("shuffle", text["Shuffle"], config.Shuffle)) { config.Shuffle = !config.Shuffle; player.Queue.Shuffle = config.Shuffle; Changed(); }
         ImGui.SameLine(); if (TransportButton("previous", text["Previous"])) player.Previous();
@@ -509,7 +503,30 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         { config.ShowMini = !config.ShowMini; Changed(); }
         ImGui.SameLine();
         DrawVolume(text.Label("Volume"), 220);
+        DrawSeekBar("main-seek");
         if (player.Error != null) ImGui.TextWrapped(player.Error);
+    }
+
+    private readonly Dictionary<string, (int Revision, float Value, bool Active, bool Cancelled)> seekDrafts = [];
+    private static string ClockText(double seconds) => TimeSpan.FromSeconds(Math.Max(0, seconds)).ToString(seconds >= 3600 ? @"h\:mm\:ss" : @"m\:ss");
+    private void DrawSeekBar(string id)
+    {
+        seekDrafts.TryGetValue(id, out var draft);
+        var sameTrack = draft.Revision == player.PlaybackRevision;
+        var value = draft.Active && sameTrack ? draft.Value : (float)player.Elapsed;
+        var duration = (float)player.Duration;
+        var enabled = player.CanSeek && duration > 0;
+        var cancelled = (draft.Cancelled || draft.Active && !sameTrack) && ImGui.IsMouseDown(ImGuiMouseButton.Left);
+        if (!enabled) value = 0;
+        var label = enabled ? $"{ClockText(value)} / {ClockText(duration)}" : text[player.IsLoading ? "AudioLoading" : "SeekUnavailable"];
+        ImGui.BeginDisabled(!enabled || cancelled);
+        ImGui.SetNextItemWidth(-1);
+        ImGui.SliderFloat("##" + id, ref value, 0, Math.Max(1, duration), label, ImGuiSliderFlags.NoInput);
+        var active = ImGui.IsItemActive();
+        if (enabled && sameTrack && !cancelled && !draft.Cancelled && ImGui.IsItemDeactivatedAfterEdit()) player.Seek(value);
+        seekDrafts[id] = (player.PlaybackRevision, value, active, cancelled);
+        ImGui.EndDisabled();
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) ImGui.SetTooltip(text[enabled ? "SeekHint" : player.IsLoading ? "AudioLoading" : "SeekUnavailable"]);
     }
 
     private void DrawLanguageSettings()
@@ -535,6 +552,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         }
         ImGui.Spacing(); ImGui.TextColored(Accent, text["Playback"]);
         ImGui.TextWrapped(text["VolumeInfo"]);
+        ImGui.TextWrapped(text["LocalAudioInfo"]);
         var locked = config.LockBgm;
         if (ImGui.Checkbox(text.Label("LockBgm"), ref locked)) { config.LockBgm = locked; Changed(); }
         ImGui.TextWrapped(text["LockInfo"]);
@@ -573,6 +591,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
         }
         ImGui.TextWrapped(text["CommandHelp"]);
         if (ImGui.Button(text.Label("RestoreBgm"))) player.Stop();
+        DrawSeekBar("main-seek");
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
     private void DrawSupport()
@@ -582,6 +601,7 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
             StandardPluginTabs.DrawSupportContent("BGMPlayer · Roxyz0501", text["SupportInfo"], text["SupportRecipient"], text["SupportButton"]);
         }
         catch { player.Error = "BrowserError"; }
+        DrawSeekBar("main-seek");
         if (player.Error != null) ImGui.TextWrapped(player.Error);
     }
     private void Changed() { revision++; markChanged(); }

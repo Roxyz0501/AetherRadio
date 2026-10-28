@@ -51,7 +51,7 @@
   "NoSelection": "Kein Titel ausgewählt",
   "Volume": "Player-Lautstärke",
   "Playback": "Wiedergabe",
-  "VolumeInfo": "100 % entspricht der normalen BGM-Lautstärke. Bis zur Lautstärkegrenze des Spiels sind bis zu 200 % möglich. Spieleinstellungen und Soundeffekte bleiben unverändert.",
+  "VolumeInfo": "Lautstärke von 0 bis 200 %. Bei spulbaren Titeln entspricht 100 % dem Originalpegel. Gespeicherte Spieleinstellungen und Soundeffekte bleiben unverändert.",
   "LockBgm": "BGM-Wechsel während der Wiedergabe ignorieren",
   "LockInfo": "Gilt für Inhalte, Kämpfe und Gebiete. Ist dies aus, stellt der nächste BGM-Wechsel des Spiels die normale Musik wieder her. Stoppen, Abmelden oder Entladen hebt die Sperre ebenfalls auf.",
   "Repeat": "Wiederholung",
@@ -123,5 +123,12 @@
   "RetrySave": "Speichern wiederholen",
   "BackupCleanupFailed": "Die Einstellungen sind gespeichert, alte Sicherungen konnten jedoch nicht entfernt werden. Dateisperren und Zugriffsrechte prüfen und erneut versuchen.",
   "OrchestrionId": "Orchestrion-ID: {0}",
-  "SupplementPlaybackFailed": "Der zusätzliche Titel hat den Audiolader nicht erreicht. Die Spielmusik wurde wiederhergestellt. Wähle den Titel erneut."
+  "SupplementPlaybackFailed": "Der zusätzliche Titel hat den Audiolader nicht erreicht. Die Spielmusik wurde wiederhergestellt. Wähle den Titel erneut.",
+  "AudioLoading": "Wird geladen…",
+  "SeekUnavailable": "Spulen nicht verfügbar",
+  "SeekHint": "Zum Spulen ziehen",
+  "AudioLoadFailed": "Titel konnte nicht geladen werden. Spielmusik wiederhergestellt.",
+  "AudioOutputFailed": "Audioausgabe fehlgeschlagen. Windows-Ausgabegerät prüfen.",
+  "AudioSeekFailed": "Wiedergabeposition konnte nicht geändert werden.",
+  "LocalAudioInfo": "Spulbare Titel verwenden das Windows-Standardausgabegerät. Lautstärke hier regeln; BGM-Lautstärke und Stummschaltung des Spiels gelten nicht."
 }

@@ -51,7 +51,7 @@
   "NoSelection": "Aucun titre sélectionné",
   "Volume": "Volume du lecteur",
   "Playback": "Lecture",
-  "VolumeInfo": "100 % correspond au volume BGM normal. Vous pouvez monter jusqu’à 200 %, dans la limite du jeu. Les réglages audio du jeu et les effets sonores restent inchangés.",
+  "VolumeInfo": "Volume de 0 à 200 %. Pour les morceaux avec recherche, 100 % correspond au niveau source. Les réglages enregistrés du jeu et les effets sonores restent inchangés.",
   "LockBgm": "Ignorer les changements de BGM pendant la lecture",
   "LockInfo": "Concerne les musiques de contenu, de combat et de zone. Si désactivé, le prochain changement demandé par le jeu rétablit la musique normale. L’arrêt, la déconnexion ou le déchargement libère aussi la BGM.",
   "Repeat": "Répétition",
@@ -123,5 +123,12 @@
   "RetrySave": "Réessayer l’enregistrement",
   "BackupCleanupFailed": "Les paramètres sont enregistrés, mais les anciennes sauvegardes n’ont pas pu être supprimées. Vérifiez les verrous et les droits d’accès, puis réessayez.",
   "OrchestrionId": "ID du rouleau orchestrion : {0}",
-  "SupplementPlaybackFailed": "Le morceau supplémentaire n’a pas atteint le chargement audio. La musique du jeu a été rétablie. Sélectionnez à nouveau le morceau."
+  "SupplementPlaybackFailed": "Le morceau supplémentaire n’a pas atteint le chargement audio. La musique du jeu a été rétablie. Sélectionnez à nouveau le morceau.",
+  "AudioLoading": "Chargement…",
+  "SeekUnavailable": "Recherche indisponible",
+  "SeekHint": "Glisser pour changer de position",
+  "AudioLoadFailed": "Impossible de charger le morceau. Musique du jeu rétablie.",
+  "AudioOutputFailed": "Échec de la sortie audio. Vérifiez le périphérique Windows.",
+  "AudioSeekFailed": "Impossible de changer la position de lecture.",
+  "LocalAudioInfo": "Les morceaux avec recherche utilisent la sortie Windows par défaut. Réglez le volume ici ; le volume BGM et la sourdine du jeu ne sont pas appliqués."
 }

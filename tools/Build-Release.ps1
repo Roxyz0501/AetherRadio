@@ -25,7 +25,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 if (Test-Path -LiteralPath $destination) { Remove-Item -LiteralPath $destination }
 $zip = [IO.Compression.ZipFile]::Open($destination, [IO.Compression.ZipArchiveMode]::Create)
 try {
-    foreach ($name in @('AetherRadio.dll','AetherRadio.deps.json','AetherRadio.json','icon.png','LICENSE','THIRD_PARTY_NOTICES.md')) {
+    foreach ($name in @('AetherRadio.dll','NAudio.Core.dll','NAudio.WinMM.dll','NVorbis.dll','AetherRadio.deps.json','AetherRadio.json','icon.png','LICENSE','THIRD_PARTY_NOTICES.md')) {
         [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, (Join-Path $output $name), $name) | Out-Null
     }
     foreach ($license in Get-ChildItem -LiteralPath (Join-Path $root 'licenses') -Filter '*.txt') {
@@ -42,6 +42,7 @@ try {
     $reader = [IO.StreamReader]::new($entry.Open())
     try { $packed = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
     if ($packed.IconUrl -ne $manifest.IconUrl -or $packed.RepoUrl -ne $manifest.RepoUrl) { throw 'Packaged manifest URL mismatch' }
+    foreach ($dependency in @('NAudio.Core.dll','NAudio.WinMM.dll','NVorbis.dll','licenses/NAudio-MIT.txt','licenses/NVorbis-MIT.txt')) { if (!$zip.GetEntry($dependency)) { throw "Missing audio dependency/license: $dependency" } }
     if (!$zip.GetEntry('licenses/Orchestrion-MIT.txt')) { throw 'Missing upstream license' }
     $assemblyStream = [IO.MemoryStream]::new()
     $packedDll = $zip.GetEntry('AetherRadio.dll').Open()

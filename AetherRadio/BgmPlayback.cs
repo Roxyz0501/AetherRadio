@@ -30,6 +30,7 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
     private readonly BgmVolumeSession volume = new(new NativeMusicVolume());
     public int VolumePercent { get; set; } = 100;
     public ushort? Current { get; private set; }
+    public bool SilentOverride { get; set; }
     public bool Locked { get; set; } = true;
     private readonly record struct Request(ushort Id, uint Scene, byte A3 = 0, bool Fade = false,
         uint Out = 0, uint In = 0, uint Start = 0, byte A8 = 0, byte A9 = 0, float Volume = 1, bool Reset = false);
@@ -72,7 +73,7 @@ public sealed unsafe class BgmPlayback : IBgmPlayback
                 activeIds.Add(scene.BgmId); activeIds.Add(scene.PlayingBgmId); activeIds.Add(scene.PreviousBgmId);
             }
             foreach (var request in pending.Values) activeIds.Add(request.Id);
-            var nextRoute = (router ??= new PlaybackRouter(catalog.Tracks.Values)).Resolve(track, system->Scenes[0].BgmId, activeIds);
+            var nextRoute = SilentOverride ? new PlaybackRoute(1, null, null) : (router ??= new PlaybackRouter(catalog.Tracks.Values)).Resolve(track, system->Scenes[0].BgmId, activeIds);
             if (nextRoute.ReplacementPath != null && pathHook == null) throw new PlaybackException("ApiUnavailable");
             if (Current != null && owner != (nint)system) Release(ReleaseMode.Discard);
             if (Current == null)

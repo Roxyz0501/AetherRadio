@@ -97,7 +97,7 @@ public sealed class Localization(Func<string?> language)
     });
 }
 
-public sealed class PlaybackException(string key) : InvalidOperationException(key)
+public sealed class PlaybackException(string key, Exception? inner = null) : InvalidOperationException(key, inner)
 {
     public string Key { get; } = key;
 }

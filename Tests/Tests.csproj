@@ -5,6 +5,9 @@
     <DalamudLibPath Condition="'$(DalamudLibPath)' == ''">$(APPDATA)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+    <PackageReference Include="NVorbis" Version="0.10.5" />
+    <Compile Include="../AetherRadio/LocalMusic.cs" Link="LocalMusic.cs" />
     <Compile Include="../Core/*.cs" Link="Core/%(Filename)%(Extension)" />
     <Compile Include="../AetherRadio/Catalog.cs" Link="Catalog.cs" />
     <Compile Include="../AetherRadio/Player.cs" Link="Player.cs" />

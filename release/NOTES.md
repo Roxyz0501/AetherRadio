@@ -1,11 +1,11 @@
-BGMPlayer 1.1.3.0
+# BGMPlayer 1.2.0.0 — シークバー
 
-- 追加曲の再生時に、無音用のBGM_Nullを選んでしまう不具合を修正しました。タイトル・ランチャー・キャラクター選択画面用の曲も除外します。
-- ゲームが現在再生中・切り替え中のBGMと重ならない曲を使うようにしました。
-- 追加曲が8秒以内に音声読み込み処理へ到達しない場合は、再生中の表示を続けずに停止してエラーを表示します。
+- メイン・ミニ両方に再生位置と曲の長さを表示。クリック／ドラッグして離すと、その位置から再生します。
+- 対応するOgg Vorbis形式の曲は、インストール済み音声をメモリ上で読み込んで再生します。音声の保存・外部送信はありません。
+- 曲の末尾付近へのシーク、1曲ループ、連続選択、読み込み中の停止・ログアウトに対応。非対応形式は従来方式で再生し、シークバーを無効にします。
 
-Clean Release: zero warnings/errors. 251 managed checks / 273 with offline game data and 92 isolated ImGui checks passed. 実データで初回・連続選曲とも無音ファイルを使わないことを確認しました。実ゲーム内の音出しは未確認のため公開プレビューです。
+シーク対応曲はWindowsの既定の出力先を使います。音量はプレイヤー側で調整してください。ゲームのBGM／マスター音量・ミュート・非アクティブ時の消音設定は適用されません。SEなどとゲームの保存設定は変更しません。
 
-https://raw.githubusercontent.com/Roxyz0501/DalamudPluginRepo/main/repo.json
+通常曲・「闘う者達」「更に闘う者達」のメモリ内デコードとシークを確認しました。実際のゲーム内音声出力・BGM復帰は未確認のプレビューです。
 
-Includes MIT-licensed song metadata from OrchestrionPlugin by Meli, perchbird and contributors. Notices and license are included; game audio is not bundled.
+NAudio 2.2.1 / NVorbis 0.10.5 (MIT)を同梱。DLL単体でなくZIP全体を展開してください。既存の設定・マイリストを引き継ぎます。

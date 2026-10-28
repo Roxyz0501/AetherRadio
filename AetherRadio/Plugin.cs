@@ -46,7 +46,12 @@ public sealed class Plugin : IDalamudPlugin
         settings.MarkDirty(); // Compare normalized settings at the next save boundary, including first-run language.
         var catalog = new Catalog(new DalamudTrackData(data), (e, label) => log.Warning(e, "Catalogue enrichment: {Label}", label));
         player = new Player(config, catalog, null, client, log,
-            () => new BgmPlayback(interop, () => client.IsLoggedIn, catalog));
+            () =>
+            {
+                var native = new BgmPlayback(interop, () => client.IsLoggedIn, catalog);
+                return new SeekablePlayback(native, value => native.SilentOverride = value,
+                    id => LocalMusic.Load(data, catalog.Tracks[id]));
+            });
         ui = new RadioUi(config, catalog, player, settings.MarkDirty);
         ui.PersistenceStatus = () => settings.Stopped ? "SaveStopped" : settings.LastError != null ? "SaveFailed" : settings.BackupCleanupFailed ? "BackupCleanupFailed" : settings.Recovered ? "SettingsRecovered" : null;
         ui.RetrySave = settings.Retry;

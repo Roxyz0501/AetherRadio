@@ -51,7 +51,7 @@
   "NoSelection": "No track selected",
   "Volume": "Player volume",
   "Playback": "Playback",
-  "VolumeInfo": "100% is the normal BGM level. You can raise it to 200%, up to the game’s volume limit. Game volume settings and sound effects are unchanged.",
+  "VolumeInfo": "Adjust volume from 0 to 200%. For seekable tracks, 100% is the source level. Saved game settings and sound effects are unchanged.",
   "LockBgm": "Ignore game BGM changes while playing",
   "LockInfo": "Applies to duty, battle and field music. When off, the next game BGM request restores normal music. Stopping, logging out or unloading also releases the override.",
   "Repeat": "Repeat",
@@ -123,5 +123,12 @@
   "RetrySave": "Retry save",
   "BackupCleanupFailed": "Settings are saved, but old backups could not be pruned. Check file locks and access permissions, then retry.",
   "OrchestrionId": "Orchestrion ID: {0}",
-  "SupplementPlaybackFailed": "The additional track did not reach the audio loader. Game music was restored. Select the track again."
+  "SupplementPlaybackFailed": "The additional track did not reach the audio loader. Game music was restored. Select the track again.",
+  "AudioLoading": "Loading…",
+  "SeekUnavailable": "Seeking unavailable",
+  "SeekHint": "Drag to seek",
+  "AudioLoadFailed": "Could not load the track. Game BGM restored.",
+  "AudioOutputFailed": "Audio output failed. Check the Windows output device.",
+  "AudioSeekFailed": "Could not seek in this track.",
+  "LocalAudioInfo": "Seekable tracks use the Windows default output device. Adjust volume in this player; game BGM volume and mute settings do not apply."
 }

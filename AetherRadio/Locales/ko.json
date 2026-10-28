@@ -51,7 +51,7 @@
   "NoSelection": "선택한 곡이 없습니다",
   "Volume": "플레이어 음량",
   "Playback": "재생",
-  "VolumeInfo": "100%가 기본 BGM 음량입니다. 게임의 음량 상한 내에서 200%까지 높일 수 있습니다. 게임 음량 설정과 효과음은 바뀌지 않습니다.",
+  "VolumeInfo": "음량은 0~200%로 조절합니다. 재생 위치 변경이 가능한 곡의 100%는 원음 음량입니다. 저장된 게임 설정과 효과음은 변경하지 않습니다.",
   "LockBgm": "재생 중 게임 BGM 변경 무시",
   "LockInfo": "콘텐츠, 전투, 필드 음악에 적용됩니다. 끄면 게임의 다음 BGM 변경 요청 시 기본 음악으로 돌아갑니다. 정지, 로그아웃 또는 플러그인 종료 시에도 고정이 해제됩니다.",
   "Repeat": "반복",
@@ -123,5 +123,12 @@
   "RetrySave": "저장 재시도",
   "BackupCleanupFailed": "설정은 저장했지만 오래된 백업을 정리하지 못했습니다. 파일 잠금과 접근 권한을 확인한 후 다시 시도하세요.",
   "OrchestrionId": "오케스트리온 ID: {0}",
-  "SupplementPlaybackFailed": "추가 곡의 오디오 로딩을 확인할 수 없어 게임 BGM으로 돌아갔습니다. 곡을 다시 선택해 주세요."
+  "SupplementPlaybackFailed": "추가 곡의 오디오 로딩을 확인할 수 없어 게임 BGM으로 돌아갔습니다. 곡을 다시 선택해 주세요.",
+  "AudioLoading": "불러오는 중…",
+  "SeekUnavailable": "재생 위치 변경 불가",
+  "SeekHint": "드래그하여 재생 위치 변경",
+  "AudioLoadFailed": "곡을 불러오지 못했습니다. 게임 BGM으로 돌아갑니다.",
+  "AudioOutputFailed": "소리 출력에 실패했습니다. Windows 출력 장치를 확인하세요.",
+  "AudioSeekFailed": "재생 위치를 변경하지 못했습니다.",
+  "LocalAudioInfo": "재생 위치를 변경할 수 있는 곡은 Windows 기본 출력 장치로 재생합니다. 음량은 이 플레이어에서 조절하세요. 게임 BGM 음량 및 음소거 설정은 적용되지 않습니다."
 }

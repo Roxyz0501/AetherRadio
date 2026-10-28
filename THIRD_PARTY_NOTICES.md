@@ -37,3 +37,14 @@
 `images/icon.png` is an original generated icon. It does not use game artwork.
 Game audio, game data files, and game runtime binaries are not distributed.
 The catalogue is assembled from the user's installed game data at runtime.
+
+## Bundled audio libraries
+
+- NAudio.Core and NAudio.WinMM 2.2.1, Mark Heath and contributors, MIT.
+  https://github.com/naudio/NAudio — Windows waveOut output and PCM conversion.
+  Full notice: `licenses/NAudio-MIT.txt`.
+- NVorbis 0.10.5, Andrew Ward and contributors, MIT.
+  https://github.com/NVorbis/NVorbis — in-memory Ogg Vorbis decoding and sample seeking.
+  Full notice: `licenses/NVorbis-MIT.txt`.
+- Lumina's existing ScdFile.GetAudio API reconstructs/decrypts the selected installed
+  SCD stream in memory. No Lumina parser code or game audio is bundled or exported.

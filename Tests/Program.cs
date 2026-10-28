@@ -69,6 +69,7 @@ mixer.Owner = 0; gain.Apply(50);
 Check(mixer.Writes == writes, "Missing sound manager is safe");
 
 SessionTests.Run(Check);
+SeekTests.Run(Check);
 OrchestrionTests.Run(Check);
 VolumeBoostTests.Run(Check);
 ConfigurationTests.Run(Check);
@@ -80,6 +81,7 @@ SupplementaryTests.Run(Check);
 if (args.Length > 0)
 {
     using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Language.Japanese, CacheFileResources = false });
+    SeekTests.Installed(game, Check);
     var catalogue = new Catalog(new OfflineData(game), (e, label) => Console.WriteLine($"WARNING {label}: {e.Message}"));
     catalogue.Load();
     var expected = (game.GetExcelSheet<BGM>() ?? throw new InvalidOperationException("Missing BGM sheet")).Count(x => x.RowId is > 0 and <= ushort.MaxValue && !string.IsNullOrWhiteSpace(x.File.ToString()) && game.FileExists(x.File.ToString()));

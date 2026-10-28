@@ -1,5 +1,16 @@
 # Validation — 2026-10-12
 
+## 1.2.0.0 seekable playback (2026-10-28)
+
+- Main/mini bars show the decoder sample cursor and actual duration; the cursor can lead audible output by the bounded 100 ms output buffer. Mouse release commits one seek. Track restart during drag cancels the old target. No seek positions are persisted.
+- Selected single-stream Ogg Vorbis SCD is reconstructed by Lumina in memory, decoded with NVorbis 0.10.5 and output by NAudio.WinMM/Core 2.2.1. Native silence scene plus temporary Music/TimeStretch/Orchestrion attenuation retains existing BGM lock/restoration. No game networking APIs, audio export, or game-setting writes. SE/voice/environment buses are never addressed.
+- Windows default output is used. Game BGM/master/mute/background-audio preferences do not apply to local output; README/settings/release notes disclose this. Unsupported codec/layout/over-64-MiB or multi-stream files use native playback and disable seek. File retrieval precedes size validation; the 64-MiB limit bounds retained compressed data, not Lumina's initial allocation.
+- One active load plus one replaceable pending request; no preload/library scan, disk audio cache or polling IO. Switching/stop/logout invalidates stale results, and unload joins the worker. Streaming PCM uses bounded buffers rather than full decoded tracks. Selection costs one local SCD request; seeks and volume/UI updates make zero data requests, external transfers and configuration writes. At most current compressed audio plus one loading SCD is retained; initial catalogue remains 11 sheet requests / 2,181 existence checks.
+- 267 managed checks, 307 with installed ja/en/de/fr catalogues; 97 isolated ImGui checks include both bars, release-only dispatch, cancelled drag, no settings writes, and existing seven-language UI. Clean Release has zero warnings/errors. Canonical tabs unchanged.
+- Three installed SCD files decode to nonzero PCM at 20 seconds; repeat seeks are sample deterministic; negative/end seeks and EOF loops pass. Rest-area BGM: 2,219,904 bytes / 107.143 seconds / stereo. 闘う者達: 605,536 bytes / 74.035 seconds / mono. 更に闘う者達: 1,748,176 bytes / 198.142 seconds / mono. No audible output was started by these tests.
+- Actual game audio output, device-loss recovery, hook restoration and focus behavior remain unverified. Default output must be restarted after device changes. Final-page granule mismatch found in installed data is handled by seeking up to 16 seconds earlier and decoding the bounded tail.
+- Packages contain the three audio DLLs and full MIT notices; host/game binaries are excluded. No installed DLL or production configuration was replaced.
+
 ## 2026-10-22 persistence remediation (1.1.1.0)
 
 - 60-second changed-only configuration persistence, bounded retries, three valid backups, recovery and shutdown flushing implemented. See [PERSISTENCE_REMEDIATION.md](PERSISTENCE_REMEDIATION.md) for scope, failure cases and measurements.

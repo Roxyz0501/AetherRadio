@@ -20,7 +20,8 @@ FFXIVのBGMを選んで再生するDalamudプラグインです。作者: **Roxy
 - 日本語曲名・BGM ID・場所・メタデータによる検索。
 - お気に入り、複数マイリスト、名前変更、曲の追加／削除／並べ替え。
 - 重複しないシャッフル、前／次、リストリピート、1曲の継続再生。
-- 収録時間の目安による自動曲送り。時間不明の曲には設定秒数を使用。
+- メイン・ミニ両方のシークバーで、対応曲の再生位置を変更できます。
+- 対応曲の実際の長さによる自動曲送り。従来方式の曲には目安の時間を使用。
 - 四隅への配置、自由移動、位置固定、背景の不透明度、BGM音量。
 - 再生中のBGM固定、停止時のゲームBGM復帰。設定・リストはDalamudに保存。
 - 任意の「支援」タブ。支援による機能制限はありません。
@@ -57,11 +58,16 @@ FFXIVのBGMを選んで再生するDalamudプラグインです。作者: **Roxy
 「1」が付いたアイコンが1曲ループです。この間は自動で次の曲へ進みません。
 初期設定は1曲ループです。旧版からの更新時も一度だけ1曲ループへ切り替わります。
 その後に選んだモードは、次回以降も保持します。
-音量スライダーはプラグイン側の調整値です。ゲームの音量設定は変更せず、
-再生中だけBGM音量を調整します。100%が通常音量で、最大200%まで上げられます。
-ゲーム側の音量上限に達すると、それ以上は大きくなりません。マスター音量やミュートも引き続き有効です。
-SE・ボイス・環境音は変更しません。停止・終了時にはBGM音量を戻します。
-旧版で変更済みのゲーム設定は元の値が分からないため、自動では戻せません。
+シークバーをクリック、またはドラッグして離すと、その位置から再生します。
+時刻は現在位置／曲の長さです。対応するOgg Vorbis形式の曲をメモリ内で読み込み、
+Windowsの既定の出力先から再生します。読み込み中や非対応形式ではバーが無効になります。
+非対応形式は従来のゲーム音声で再生します。音声ファイルの保存・外部送信は行いません。
+
+シーク対応曲の音量は、このプレイヤーの0〜200%で調整します。100%は音源の元の音量です。
+ゲームのBGM音量・マスター音量・ミュート・非アクティブ時の消音設定は適用されません。
+Windowsの音量ミキサーは有効です。再生先を変更した場合は一度停止して再生し直してください。
+SE・ボイス・環境音とゲームの保存設定は変更しません。停止・ログアウト・終了時にはゲームBGMに戻します。
+非対応形式では従来どおりゲーム側のBGM音量を基準に調整します。
 
 オーケストリオンが流れている場所では、BGMPlayerの再生中だけ自分に聞こえる
 オーケストリオン音を抑えます。停止すると、その時点の曲が再び聞こえます。
@@ -137,8 +143,8 @@ BGMPlayerのプレイヤー部分は従来の外観を維持しています。
 
 ## 収録範囲・検証状況
 
-対象はインストール済みゲームの `BGM` 表にある、実在する音源です。
-オーケストリオン専用音源、外部MP3、音声台詞の再生は対象外です。
+対象はインストール済みゲームの `BGM`・`OrchestrionPath` 表にある、実在する音源です。
+外部MP3、音声台詞の再生は対象外です。
 コンテンツ内のすべての曲に分類用の関連データがあるわけではありません。
 関連を取得できない曲は削除せず「その他」に表示します。
 曲名・メタデータに明記された場所からの補助分類は、曲のツールチップで区別します。
@@ -149,9 +155,9 @@ Releaseビルドと実ゲームデータのオフライン照合、再生キュ�
 ゲーム内でのネイティブ音声再生・全コンテンツでの固定・描画の実機確認は別途必要です。
 確認結果は `VALIDATION.md`、公開状態は `PUBLICATION_STATE.md` に記録します。
 
-自動曲送りの時間はメタデータによる目安で、音声エンジンの終了通知ではありません。
-1曲リピートはゲーム本来のループを維持します。非ループの短い効果曲などでは
-通常BGMと同じ挙動になるとは限りません。
+シーク対応曲は実際の音声出力終了で自動曲送りを行います。設定秒数で早めに送ることもできます。
+非対応曲の曲送りにはメタデータによる目安を使用します。シーク対応曲の1曲ループは
+取得できたサンプル位置のループ区間を使い、区間がなければ曲全体を繰り返します。
 
 ## ローカル再生の設計
 
@@ -212,3 +218,10 @@ The catalogue also reads OrchestrionPath, even when its title or content associa
 Supplementary songs retain stable plugin-only playlist IDs. Playback substitutes their installed path in the local SoundManager.PlayBGMSound call for an existing BGM scene carrier; synthetic IDs are never sent to SetBGM. This uses the game's BGM playback lifetime and music-only volume control. OrchestrionManager.PlayTrack/PlaySample and server-bound functions are not used. The new path playback needs live-game audio acceptance, including transitions, looping, volume and stop/logout restoration.
 
 Version 1.1.3 excludes silent and login-screen carrier files and currently active/fading scene IDs. If a supplementary selection does not reach the local audio loader within eight seconds, playback stops with an error; this check does not certify audible output.
+
+### Audio playback dependencies
+
+Seekable playback uses [NAudio](https://github.com/naudio/NAudio) 2.2.1 (Mark Heath)
+and [NVorbis](https://github.com/NVorbis/NVorbis) 0.10.5 (Andrew Ward), both MIT.
+They decode the selected installed SCD in memory and output through the Windows
+default device. No game audio files are included. See THIRD_PARTY_NOTICES.md.
