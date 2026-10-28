@@ -4,6 +4,17 @@ Updated: 2026-10-28 (JST).
 Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
+## 2026-10-28 — BGMPlayer 1.1.3.0 silent carrier correction
+
+- Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.1.3.0
+- ZIP: https://github.com/Roxyz0501/AetherRadio/releases/download/v1.1.3.0/AetherRadio-1.1.3.0.zip
+- Source/tag: `b38eb4693bcb146ee14142942945cb0f9381c069`; ZIP 1,391,739 bytes, 10 files; SHA-256 `7E0565DCF20B5F4C8C2ECCCEC01DE4BB7522BDC666476D7C92286DC1CD65CB6B`.
+- User reports supplementary songs show Playing but are silent. Old router selected BGM 1 (BGM_Null.scd). Exclude silent/login-screen files and every current/playing/previous scene ID plus pending restore requests; candidate exhaustion fails closed. An eight-second monotonic watchdog stops and reports unmatched/null local audio-loader calls. This checks loader invocation, not audible output.
+- Clean Release zero warnings/errors; 251 managed / 273 offline-data checks and 92 isolated ImGui checks pass. Installed first/subsequent routes now use ordinary IDs 5/6, not silent/title IDs 1/2. Live native audio remains unverified; correction is a public preview.
+- Anonymous repository/icon/ZIP HTTP 200, image/png; ZIP hash, GitHub asset digest, manifest and license notices verified. Public prerelease, draft=false.
+- Shared index `1a85389ed0685f4dca7e7c87f282fcd31febf249`: anonymous main/pinned URLs both show 1.1.3.0 with 14 entries; all 13 other entries preserved.
+- Standing project publication authorization applies. Connector used for source/index/records, CLI for unsupported Release/assets and local Git objects. No production config or installed DLL replaced.
+
 ## 2026-10-28 — BGMPlayer 1.1.2.0 supplementary installed tracks
 
 - Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.1.2.0
