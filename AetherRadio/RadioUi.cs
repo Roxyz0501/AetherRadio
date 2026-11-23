@@ -111,7 +111,8 @@ public sealed class RadioUi(Configuration config, Catalog catalog, Player player
                 StandardPluginTabs.DrawStandardTrailingTabs(
                     text["Settings"], "Settings", drawSettingsTab ??= DrawSettings,
                     text["LanguageSettings"], drawLanguageTab ??= DrawLanguageSettings,
-                    text["Support"], drawSupportTab ??= DrawSupport);
+                    text["Support"], drawSupportTab ??= DrawSupport,
+                    infoLabel: StandardPluginInfo.Title(text.Language), drawInfo: null);
                 ImGui.EndTabBar();
             }
         }
