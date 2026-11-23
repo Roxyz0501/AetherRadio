@@ -5,6 +5,15 @@ Classification: new standalone plugin, explicitly selected by the user.
 Author: Roxyz0501.
 
 
+
+## 2026-11-23 — BGMPlayer 1.2.1.0
+
+- Canonical StandardPluginInfo.cs and StandardPluginTabs.cs copied unchanged. External plugin dependency definitions: zero; explicit drawInfo:null completely hides Information. NAudio/NVorbis libraries are not external plugins. Existing tabs/settings retained.
+- Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.2.1.0
+- Source: e3bfea36f60536e41ccf228a264342f83eb17f98. ZIP 1,557,659 bytes; SHA256 63859B15889D241B2904AD351DE04C0A161355F55B422B39EEDB1A3A29C732E4.
+- Clean Release, 267 managed checks and 97 isolated UI checks passed. Public repository/icon/ZIP HTTP 200; packaged version/hash verified.
+- Shared index commit f381cd4fc0a0e1b1a35b43a983818bd2d5434d64 changes only BGMPlayer from latest CAS. Pinned index verified; raw main CDN initially retained 1.2.0.0 and may need propagation.
+
 ## 2026-10-28 — BGMPlayer 1.2.0.0 seek controls
 
 - Release: https://github.com/Roxyz0501/AetherRadio/releases/tag/v1.2.0.0
